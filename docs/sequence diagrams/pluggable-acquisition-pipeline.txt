@@ -1,0 +1,35 @@
+@startuml acquisition_pipeline_sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor User as "Saad (Frontend)"
+participant "Fastify Server" as Server
+participant "LLM Agent Guard" as Agent
+participant "Acquisition\nOrchestrator" as Orchestrator
+participant "AcquisitionProvider\n(e.g., qBittorrent/Authorized)" as Provider
+database "PostgreSQL" as DB
+entity "Music Storage" as FS
+participant "Music Worker" as Worker
+
+User -> Server: POST /api/acquisition/prompt\n{ prompt: "Get The Wall by Pink Floyd in FLAC" }
+Server -> Agent: Structured extraction request (System prompt + JSON schema)
+Agent --> Server: Deterministic payload:\n{ action: "ACQUIRE", artist: "Pink Floyd", album: "The Wall", year: 1979, format: "FLAC" }
+
+Server -> DB: INSERT INTO acquisition_requests (user_id, status, payload)\nVALUES (:user_id, 'PENDING', :payload)
+DB --> Server: request_id
+Server --> User: 202 Accepted { request_id, status: "PENDING" }
+
+Server -> Orchestrator: dispatch(request_id, payload)
+Orchestrator -> Provider: canHandle(payload)?
+Provider --> Orchestrator: true (Candidate matches rules)
+
+Orchestrator -> Provider: acquire(payload)
+Provider -> Provider: Fetch media stream / payload to download spool (/downloads)
+Provider --> Orchestrator: Acquisition complete: /downloads/The_Wall_FLAC/
+
+Orchestrator -> FS: Atomically move / hardlink files into library structure:\n/music/Pink Floyd/The Wall (1979)/
+Orchestrator -> DB: UPDATE acquisition_requests SET status = 'READY_TO_INGEST'
+Orchestrator -> DB: INSERT INTO jobs (type, payload)\nVALUES ('SCAN_LIBRARY', { target_path: "/music/Pink Floyd/The Wall (1979)" })
+DB --> Worker: Claim SCAN_LIBRARY job and ingest new tracks
+@enduml

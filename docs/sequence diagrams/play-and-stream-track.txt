@@ -1,0 +1,29 @@
+@startuml playback_streaming_sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor "Client Player\n(React Web / Howler / AudioContext)" as Client
+participant "Fastify Server\n(/api/tracks/:id/stream)" as Server
+database "PostgreSQL" as DB
+entity "Music Storage" as FS
+participant "FFmpeg Process" as FFmpeg
+
+Client -> Server: GET /api/tracks/:id/stream\nHeaders: [Range: bytes=10485760-, Quality: "high|low"]
+Server -> DB: SELECT file_path, format, duration FROM tracks WHERE id = :id
+DB --> Server: { file_path: "/music/.../01.flac", format: "FLAC", size: 45MB }
+
+alt Local Direct Stream (Original Lossless FLAC via Range Request)
+    Server -> FS: Open file descriptor & slice (offset: 10485760 to EOF)
+    FS --> Server: Stream chunk byte buffer
+    Server --> Client: HTTP 206 Partial Content\nContent-Range: bytes 10485760-47185920/47185920\nContent-Type: audio/flac\n\n<Byte Chunk>
+
+else Remote / Transcoded Stream (On-the-Fly Opus / AAC)
+    Server -> FFmpeg: Spawn child_process:\nffmpeg -ss <seek_point> -i file_path -c:a libopus -b:a 128k -f ogg pipe:1
+    FS -> FFmpeg: Read raw file stream
+    FFmpeg -> Server: Stdout pipe (compressed chunks)
+    Server --> Client: HTTP 200 OK (Chunked Transfer) / HTTP 206\nContent-Type: audio/ogg; codecs=opus\n\n<Stream Chunks>
+end
+
+Client -> Client: Feed audio buffer to HTML5 Audio / Web Audio API
+@enduml

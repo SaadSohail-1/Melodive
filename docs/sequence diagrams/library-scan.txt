@@ -1,0 +1,44 @@
+@startuml library_scan_sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor Admin as "Saad (UI)"
+participant "Fastify Server" as Server
+database "PostgreSQL" as DB
+participant "Music Worker" as Worker
+entity "Music Storage\n(/music)" as FS
+
+Admin -> Server: POST /api/library/scan { path: "/music" }
+Server -> DB: INSERT INTO jobs (type, status, payload)\nVALUES ('SCAN_LIBRARY', 'PENDING', ...)
+DB --> Server: job_id
+Server --> Admin: 202 Accepted { job_id, status: "PENDING" }
+
+== Async Worker Execution ==
+
+loop Worker Polling / Event
+    Worker -> DB: UPDATE jobs SET status = 'PROCESSING', locked_at = NOW()\nWHERE id = (SELECT id FROM jobs WHERE status = 'PENDING' FOR UPDATE SKIP LOCKED LIMIT 1)\nRETURNING *
+    DB --> Worker: job details
+end
+
+Worker -> FS: Read recursive directory structure
+FS --> Worker: File descriptors [.flac, .mp3, .opus]
+
+loop For Each Audio File
+    Worker -> FS: Extract metadata tags & duration (music-metadata / ffprobe)
+    FS --> Worker: ID3/Vorbis tags (Artist, Album, Title, Track No, Year)
+
+    Worker -> DB: Upsert Artist (name)
+    DB --> Worker: artist_id
+
+    Worker -> DB: Upsert Album (title, artist_id, release_year)
+    DB --> Worker: album_id
+
+    Worker -> DB: Upsert Track (album_id, artist_id, title, file_path, duration, format)
+    DB --> Worker: track_id
+
+    Worker -> DB: Enqueue Sub-jobs (FETCH_ARTWORK, GENERATE_WAVEFORM, ANALYZE_AUDIO)\nfor track_id / album_id
+end
+
+Worker -> DB: UPDATE jobs SET status = 'COMPLETED', updated_at = NOW() WHERE id = job_id
+@enduml

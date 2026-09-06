@@ -1,0 +1,333 @@
+@startuml music_app_erd
+
+' =========================================================
+' Styling & Settings
+' =========================================================
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 5
+skinparam shadowing false
+skinparam classFontSize 12
+skinparam classFontName "Fira Code", monospace
+skinparam packageFontSize 14
+
+hide circle
+
+
+' =========================================================
+' DOMAIN 1: AUTH & IDENTITY
+' =========================================================
+package "Domain: Auth & Users" #EBF5FB {
+
+  entity "users" as users {
+    * id : uuid <<PK>>
+    --
+    * username : varchar(50) <<UNIQUE>>
+    * email : varchar(255) <<UNIQUE>>
+    * password_hash : varchar(255)
+    * is_admin : boolean
+    preferences : jsonb
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+  entity "sessions" as sessions {
+    * id : uuid <<PK>>
+    --
+    * user_id : uuid <<FK>>
+    * token_hash : varchar(255)
+    ip_address : inet
+    user_agent : text
+    * expires_at : timestamptz
+    * created_at : timestamptz
+  }
+}
+
+
+' =========================================================
+' DOMAIN 2: CORE LIBRARY & AUDIO METADATA
+' =========================================================
+package "Domain: Library & Audio Engine" #E8F8F5 {
+
+  entity "artists" as artists {
+    * id : uuid <<PK>>
+    --
+    * name : varchar(255)
+    musicbrainz_id : uuid <<UNIQUE>>
+    biography : text
+    image_path : text
+    tsv : tsvector <<Generated / GIN>>
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+
+  entity "albums" as albums {
+    * id : uuid <<PK>>
+    --
+    * title : varchar(255)
+    * artist_id : uuid <<FK>> <<Album Artist>>
+    release_year : smallint
+    musicbrainz_id : uuid <<UNIQUE>>
+    artwork_path : text
+    genres : text[]
+    total_tracks : smallint
+    total_discs : smallint
+    tsv : tsvector <<Generated / GIN>>
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+
+  entity "tracks" as tracks {
+    * id : uuid <<PK>>
+    --
+    * title : varchar(255)
+    * album_id : uuid <<FK>>
+    track_number : smallint
+    disc_number : smallint
+    * duration_seconds : numeric(8,3)
+    * file_path : text <<UNIQUE>>
+    file_size_bytes : bigint
+    * format : varchar(10)
+    bitrate : integer
+    sample_rate : integer
+    channels : smallint
+    bit_depth : smallint
+    checksum_sha256 : varchar(64)
+    waveform_path : text
+    bpm : numeric(5,2)
+    loudness_lufs : numeric(5,2)
+    gain_db : numeric(5,2)
+    tsv : tsvector <<Generated / GIN>>
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+
+  entity "track_artists" as track_artists {
+    * track_id : uuid <<PK, FK>>
+    * artist_id : uuid <<PK, FK>>
+    --
+    * role : varchar(50)
+  }
+}
+
+
+' =========================================================
+' DOMAIN 3: PLAYBACK, USER INTERACTION & STATS
+' =========================================================
+package "Domain: Playback & Stats (Wrapped)" #FEF9E7 {
+
+  entity "listening_events" as listening_events {
+    * id : bigserial <<PK>>
+    --
+    * user_id : uuid <<FK>>
+    * track_id : uuid <<FK>>
+    * played_duration_seconds : numeric(8,3)
+    * completion_ratio : numeric(4,3) <<0.000 - 1.000>>
+    * completed : boolean
+    source : varchar(50) <<web, mobile, remote>>
+    * played_at : timestamptz
+  }
+
+
+  entity "user_playback_states" as user_playback_states {
+    * user_id : uuid <<PK, FK>>
+    --
+    active_track_id : uuid <<FK>>
+    position_seconds : numeric(8,3)
+    is_playing : boolean
+    volume : numeric(3,2)
+    device_id : varchar(100)
+    * updated_at : timestamptz
+  }
+
+
+  entity "playlists" as playlists {
+    * id : uuid <<PK>>
+    --
+    * user_id : uuid <<FK>>
+    * name : varchar(255)
+    description : text
+    is_public : boolean
+    cover_image_path : text
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+
+  entity "playlist_tracks" as playlist_tracks {
+    * id : uuid <<PK>>
+    --
+    * playlist_id : uuid <<FK>>
+    * track_id : uuid <<FK>>
+    * position : integer
+    * added_at : timestamptz
+  }
+
+
+  entity "favorites" as favorites {
+    * id : uuid <<PK>>
+    --
+    * user_id : uuid <<FK>>
+    track_id : uuid <<FK>> <<NULLABLE>>
+    album_id : uuid <<FK>> <<NULLABLE>>
+    artist_id : uuid <<FK>> <<NULLABLE>>
+    * created_at : timestamptz
+  }
+}
+
+
+' =========================================================
+' DOMAIN 4: BACKGROUND JOBS & WORKERS
+' =========================================================
+package "Domain: Processing & Worker System" #F4ECF7 {
+
+  entity "jobs" as jobs {
+    * id : bigserial <<PK>>
+    --
+    * type : varchar(50)
+    * status : varchar(20)
+    priority : smallint <<Default: 0>>
+    payload : jsonb
+    result : jsonb
+    error_message : text
+    attempts : smallint <<Default: 0>>
+    max_retries : smallint <<Default: 3>>
+    run_at : timestamptz
+    locked_at : timestamptz
+    locked_by : varchar(100)
+    started_at : timestamptz
+    completed_at : timestamptz
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+}
+
+
+' =========================================================
+' DOMAIN 5: ACQUISITION & AGENT
+' =========================================================
+package "Domain: Acquisition & Agent" #FADBD8 {
+
+  entity "acquisition_requests" as acq_requests {
+    * id : uuid <<PK>>
+    --
+    * user_id : uuid <<FK>>
+    prompt_raw : text
+    inferred_action : varchar(50) <<ACQUIRE_ALBUM, ACQUIRE_TRACK>>
+    target_artist : varchar(255)
+    target_album : varchar(255)
+    target_track : varchar(255)
+    target_year : smallint
+    target_format : varchar(20) <<FLAC, ANY>>
+    * status : varchar(30)
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+
+
+  entity "acquisition_items" as acq_items {
+    * id : uuid <<PK>>
+    --
+    * request_id : uuid <<FK>>
+    * provider_name : varchar(50)
+    external_reference_id : varchar(255)
+    target_path : text
+    total_bytes : bigint
+    downloaded_bytes : bigint
+    track_id : uuid <<FK, NULLABLE>>
+    status : varchar(30)
+    error_details : text
+    created_at : timestamptz
+    * updated_at : timestamptz
+  }
+}
+
+
+' =========================================================
+' DOMAIN 6: LIBRARY SOURCES
+' =========================================================
+package "Domain: Library Sources" #EAF2F8 {
+
+  entity "library_sources" as library_sources {
+    * id : uuid <<PK>>
+    --
+    * name : varchar(100)
+    * path : text <<UNIQUE>>
+    * enabled : boolean
+    * created_at : timestamptz
+    * updated_at : timestamptz
+  }
+}
+
+
+' =========================================================
+' RELATIONSHIPS
+' =========================================================
+
+' ---------------------------------------------------------
+' Auth & Users
+' ---------------------------------------------------------
+users ||--o{ sessions : "owns"
+
+users ||--o{ playlists : "creates"
+
+users ||--o{ favorites : "marks"
+
+users ||--o{ listening_events : "generates"
+
+users ||--o| user_playback_states : "tracks current"
+
+users ||--o{ acq_requests : "initiates"
+
+
+' ---------------------------------------------------------
+' Library
+' ---------------------------------------------------------
+artists ||--o{ albums : "album artist"
+
+albums ||--|{ tracks : "contains"
+
+tracks ||--o{ track_artists : "has credits"
+
+artists ||--o{ track_artists : "participates in"
+
+
+' ---------------------------------------------------------
+' Playback & Playlists
+' ---------------------------------------------------------
+tracks ||--o{ listening_events : "recorded in"
+
+tracks ||--o| user_playback_states : "currently playing"
+
+playlists ||--o{ playlist_tracks : "contains"
+
+tracks ||--o{ playlist_tracks : "is referenced by"
+
+
+' ---------------------------------------------------------
+' Favorites
+' ---------------------------------------------------------
+tracks ||--o{ favorites : "favorited"
+
+albums ||--o{ favorites : "favorited"
+
+artists ||--o{ favorites : "favorited"
+
+
+' ---------------------------------------------------------
+' Acquisition
+' ---------------------------------------------------------
+acq_requests ||--o{ acq_items : "contains"
+
+tracks ||--o{ acq_items : "produces"
+
+
+' ---------------------------------------------------------
+' Library Sources
+' ---------------------------------------------------------
+library_sources ||--o{ tracks : "contains files from"
+
+@enduml

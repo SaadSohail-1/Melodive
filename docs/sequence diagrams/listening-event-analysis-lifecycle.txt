@@ -1,0 +1,27 @@
+@startuml listening_events_wrapped_sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor User as "Client App"
+participant "Fastify Server" as Server
+database "PostgreSQL" as DB
+
+User -> User: User plays track\nTrack duration: 240s
+User -> User: Playback reaches threshold\n(e.g., > 30s elapsed or > 50% played)
+
+User -> Server: POST /api/listening-events\nBody: { track_id: "trk_123", played_duration: 128, completed: false, timestamp: ISO }
+Server -> Server: Validate session, track existence, and payload schema
+
+Server -> DB: INSERT INTO listening_events (user_id, track_id, played_duration, played_at)\nVALUES (:user_id, :track_id, :played_duration, :timestamp)
+DB --> Server: 201 Created
+
+Server --> User: { status: "recorded", event_id: "evt_987" }
+
+== Analytics / Wrapped Generation Query ==
+
+User -> Server: GET /api/analytics/wrapped?year=2026
+Server -> DB: Run analytical aggregations:\n- Top Artists: SUM(played_duration) GROUP BY artist_id\n- Top Tracks: COUNT(*) GROUP BY track_id\n- Total Listening Time: SUM(played_duration)\n- Peak Listening Hour: DATE_TRUNC('hour', played_at)
+DB --> Server: Aggregated metrics payload
+Server --> User: 200 OK { top_artists: [...], total_minutes: 42350, ... }
+@enduml

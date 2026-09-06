@@ -1,0 +1,18 @@
+@startuml search_sequence
+autonumber
+skinparam BoxPadding 10
+skinparam ParticipantPadding 10
+
+actor User as "Client UI"
+participant "Fastify Server\n(/api/search)" as Server
+database "PostgreSQL\n(GIN Indexes)" as DB
+
+User -> Server: GET /api/search?q=pink+floyd+wall&type=all
+Server -> Server: Sanitize query & construct TSQuery:\n'pink':* & 'floyd':* & 'wall':*
+
+Server -> DB: Execute Full-Text Search across Tables:\n\n-- 1. Artists (Trigram & TSVector)\nSELECT id, name, similarity(name, 'pink floyd') AS score\nFROM artists WHERE name % 'pink floyd' OR tsv @@ to_tsquery('pink:*')\nORDER BY score DESC LIMIT 5;\n\n-- 2. Albums (TSVector & Join)\nSELECT id, title, release_year FROM albums\nWHERE tsv @@ to_tsquery('wall:*') LIMIT 5;\n\n-- 3. Tracks (Title matches)\nSELECT t.id, t.title, a.name as artist, al.title as album\nFROM tracks t JOIN artists a ON t.artist_id = a.id\nJOIN albums al ON t.album_id = al.id\nWHERE t.tsv @@ to_tsquery('pink:* & wall:*') LIMIT 20;
+
+DB --> Server: Return unified SQL result sets
+Server -> Server: Format combined response grouping: { artists: [...], albums: [...], tracks: [...] }
+Server --> User: 200 OK [JSON Unified Results]
+@enduml
