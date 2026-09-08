@@ -1,3 +1,17 @@
 created a root package.json and then added workspaces in it
 and in the workspaces theres package.json asw but as workspaces of the root package.json and to download the Dependencies from root level like 
 npm i <package> --workspace=<workspace_name> 
+
+The responsibilities for /app/server/src are:
+
+Folder | Responsibility
+index.ts	Start the server
+app.ts	Construct/configure Fastify
+plugins/	Fastify plugins/dependencies
+routes/	Define HTTP endpoints
+controllers/	Handle HTTP request/response
+services/	Actual application/business logic
+db/	Drizzle + database schema
+config/	Environment/configuration
+types/	TypeScript extensions
+utils/	Small reusable helpers
