@@ -1,4 +1,4 @@
-# 🎵 Melodive
+# Melodive
 
 **Melodive** is a self-hosted music streaming application built as an engineering-focused full-stack project.
 
