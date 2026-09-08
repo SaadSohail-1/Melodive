@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { loginUser, registerUser } from "../services/auth/auth.service.js";
-import { createSession } from "../services/auth/session.service.js";
+import { createSession, deleteSession } from "../services/auth/session.service.js";
 
 type RegisterBody = {
     username: string;
@@ -47,6 +47,25 @@ export async function login(
         path: "/",
         expires: session.expiresAt
     });
-    
+
     return reply.send({user});
+}
+
+export async function logout(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    const token = request.cookies.session;
+    
+    if(token) {
+        await deleteSession(token);
+    }
+
+    reply.clearCookie("session", {
+        path: "/"
+    });
+
+    return reply.send({
+        message:"Logged out"
+    });
 }

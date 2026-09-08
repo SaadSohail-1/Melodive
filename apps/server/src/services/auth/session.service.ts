@@ -35,6 +35,12 @@ export async function getSession(token: string) {
     if(!session || session.expiresAt <= new Date()) {
         return null;
     }
-    
+
     return session;
+}
+
+export async function deleteSession(token: string) {
+    await db
+        .delete(sessions)
+        .where(eq(sessions.tokenHash, hashToken(token)))
 }

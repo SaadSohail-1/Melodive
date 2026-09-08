@@ -15,3 +15,5 @@ db/	Drizzle + database schema
 config/	Environment/configuration
 types/	TypeScript extensions
 utils/	Small reusable helpers
+
+

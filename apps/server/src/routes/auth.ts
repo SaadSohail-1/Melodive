@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { login, register } from "../controllers/auth.controller.js";
+import { login, logout, register } from "../controllers/auth.controller.js";
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/register",{
@@ -27,7 +27,10 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
                 },
             },
         }    
-    },login)
+    }, login);
+
+    fastify.post("/logout", logout);
+
 };
 
 export default authRoutes;
