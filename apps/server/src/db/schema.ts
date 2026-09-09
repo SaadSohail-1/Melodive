@@ -333,3 +333,37 @@ export const favorites = pgTable("favorites", {
         withTimezone: true,
     }).notNull().defaultNow()
 })
+
+export const jobs = pgTable("jobs", {
+    id: bigserial("id", {mode: "number"}).primaryKey(),
+
+    type: varchar("type", {length: 50}).notNull(),
+
+    status: varchar("status", {length: 20}).notNull(),
+
+    priority: smallint("priority").notNull().default(0),
+
+    payload: jsonb("payload"),
+
+    result: jsonb("result"),
+
+    errorMessage: text("error_message"),
+
+    attempts: smallint("attempts").notNull().default(0),
+
+    maxRetries: smallint("max_retries").notNull().default(3),
+
+    runAt: timestamp("run_at", { withTimezone: true}),
+
+    lockedBy: varchar("locked_by", {length: 100}),
+
+    startedAt: timestamp("started_at", { withTimezone: true}),
+
+    createdAt: timestamp("created_at", {
+        withTimezone: true,
+    }).notNull().defaultNow(),
+
+    updatedAt: timestamp("updated_at", {
+        withTimezone: true,
+    }).notNull().defaultNow(),
+})

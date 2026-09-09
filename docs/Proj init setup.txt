@@ -16,4 +16,45 @@ config/	Environment/configuration
 types/	TypeScript extensions
 utils/	Small reusable helpers
 
+have to create service and controller for meRoute.
 
+
+
+
+ROUTES SO FAR:
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+
+ALL tested with curl.
+
+auth flow:
+
+Register → Argon2 → users
+Login → Argon2 verify → session → HttpOnly cookie
+Request → authenticate hook → request.user
+Logout → delete session → clear cookie
+
+have to create doc files after major phases,
+architecture.md
+
+├── backend-foundation.md
+
+├── database.md
+
+├── authentication.md
+
+├── background-jobs.md
+
+├── library-ingestion.md
+
+├── streaming.md
+
+├── testing.md
+
+the backend-foundation.md needs proofreading
+1. (first mention of services, it says auth.service.ts handles all operations (except sessions) while i have /services/auth and then 3 separate files, auth, password, and session)
+2. Might need to shorten it because it feels repititive (but also seems fine).
+3. Error in 24. Playists track "playlist_tracks contains the position of a track within a playlist."
+
+i havent used enums for job statuses for now
