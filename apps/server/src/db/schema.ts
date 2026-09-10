@@ -111,7 +111,7 @@ export const albums = pgTable("albums", {
 
     releaseYear: smallint("release_year"),
 
-    musicbrainzId: varchar("musicbrainz_id", {length: 36}).notNull(),
+    musicbrainzId: varchar("musicbrainz_id", {length: 36}).unique(),
 
     artworkPath: text("artwork_path"),
 
