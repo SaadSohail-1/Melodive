@@ -109,7 +109,7 @@ export const albums = pgTable("albums", {
         .notNull()
         .references(() => artists.id),
 
-    releastYear: smallint("release_year"),
+    releaseYear: smallint("release_year"),
 
     musicbrainzId: varchar("musicbrainz_id", {length: 36}).notNull(),
 
