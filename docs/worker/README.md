@@ -51,6 +51,9 @@ apps/worker/
     │   ├── scanner.ts
     │   ├── metadata.ts
     │   ├── importer.ts
+    │   ├── test-import.ts
+    │   ├── test-scanner.ts
+    │   ├── test-metadata.ts
     │   └── test-import.ts
     │
     └── index.ts
