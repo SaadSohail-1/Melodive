@@ -11,7 +11,8 @@
     "dependencies": {
         "drizzle-orm": "^0.45.2",
         "pg": "^8.23.0",
-        "dotenv": "^17.4.2"
+        "dotenv": "^17.4.2",
+        "@melodive/db": "0.1.0"
     },
     "devDependencies": {
         "@types/node": "^26.5.0",

@@ -21,6 +21,7 @@
     "tsx": "^4.23.13"
   },
   "dependencies": {
+    "@melodive/db": "0.1.0",
     "@fastify/cookie": "^11.1.2",
     "argon2": "^0.45.1",
     "dotenv": "^17.4.2",
