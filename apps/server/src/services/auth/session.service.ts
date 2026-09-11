@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { db } from "../../db/index.js";
-import { sessions } from "../../db/schema.js";
+import { db } from "@melodive/db";
+import { sessions } from "@melodive/db";
 
 function hashToken(token: string) {
     return createHash("sha256").update(token).digest("hex");

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import { users } from "../../db/schema.js";
+import { users } from "@melodive/db";
 import { hashPassword, verifyPassword } from "./password.js";
-import { db } from "../../db/index.js";
+import { db } from "@melodive/db";
 
 export async function registerUser(
     username: string,

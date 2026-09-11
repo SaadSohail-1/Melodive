@@ -1,11 +1,11 @@
 import {eq, and} from "drizzle-orm"
-import { db } from "../db/index.js"
+import { db } from "@melodive/db"
 import { 
     artists,
     albums,
     tracks,
     trackArtists,
- } from "../../../server/src/db/schema.js";
+ } from "@melodive/db";
 
 import type { AudioMetadata } from "./metadata.js";
 

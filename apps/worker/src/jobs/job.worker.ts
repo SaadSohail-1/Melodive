@@ -1,9 +1,13 @@
-import { db } from "../db/index.js";
+import { db } from "@melodive/db";
 import { sql } from "drizzle-orm";
+import { jobs } from "@melodive/db/schema";
+import type { InferSelectModel } from "drizzle-orm";
+
+type Job = InferSelectModel<typeof jobs>;
 
 export async function claimNextJob(
     workerId: string
-) {
+): Promise<Job | null> {
     const result = await db.execute(sql`
         WITH next_job AS (
           SELECT id
@@ -26,7 +30,7 @@ export async function claimNextJob(
         WHERE jobs.id = next_job.id
         RETURNING jobs.*;
     `);
-    return result.rows[0] ?? null;
+    return (result.rows[0] as Job | undefined) ?? null; 
 }
 
 export async function completeJob(

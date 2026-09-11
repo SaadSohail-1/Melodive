@@ -58,3 +58,47 @@ the backend-foundation.md needs proofreading
 3. Error in 24. Playists track "playlist_tracks contains the position of a track within a playlist."
 
 i havent used enums for job statuses for now
+need to implement recovery mechanism for when a worker has picked up a job and then crashed.
+
+SCAN_LIBRARY
+     │
+     ▼
+Get library source
+     │
+     ▼
+Recursively find audio files
+     │
+     ▼
+Extract metadata
+     │
+     ▼
+Upsert Artist / Album / Track
+     │
+     ▼
+Finish job
+
+flow for SCAN_LIBRARY job:
+step 1: define supported audio file in /worker/src/library/audio-files.ts, created a isAudioFile bool function that checks for file extension names
+step 2: recursively scan the library, 
+
+dry run for scanDirectory folder
+scanDirectory(/music) 
+audioFiles = []
+walk (/music) (current directory)
+entries: Pink Floyd, Mazzy star
+for loop:
+full path = /music/Pink Floyd, /music/Mazzy star
+if(entry.isDirectory())===true so walk(/music/Pink Floyd) (new current directory) and walk(/music/mazzy star) (new current directory)
+entries = The Dark Side of the Moon, Wish You Were Here, Among My Swan
+for loop:
+full path= /music/Pink Floyd/The dark side of the moon, /music/Pink Floyd/Wish You Were Here, /music/Mazzy star/Among My Swan
+if(entry.isDirectory())===true for all three so
+walk(all three full paths) (new current directories)
+now 
+entries = 01 Speak to Me.flac, 02 Breathe.flac,..., 01 Disappear.flac,...
+full path= /music/Pink Floyd/The Dark side of the moon/01 Speak to Me.flac,.... 
+now this is an audio file and isAudioFile is also true, so this song gets pushed to audioFiles array
+
+step 3: Testing the scanner first before touching postgres (WORKS!)
+
+while testing the importer service, somehow the 01. Disappear.flac file is gone and turned to two text files wtf lol

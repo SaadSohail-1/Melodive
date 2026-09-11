@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import {db} from "../db/index.js";
+import {db} from "@melodive/db";
 
 export  default fp(async (fastify) => {
     fastify.decorate("db", db);

@@ -15,6 +15,13 @@
       "when": 1788969865104,
       "tag": "0001_large_captain_midlands",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789048728956,
+      "tag": "0002_pink_annihilus",
+      "breakpoints": true
     }
   ]
 }

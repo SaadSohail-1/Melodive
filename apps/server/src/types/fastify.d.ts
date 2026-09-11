@@ -1,14 +1,16 @@
-import type { FastifyRequest } from "fastify";
-import type {db} from "../db/index.js";
+import type {db} from "@melodive/db";
+import type { FastifyReply } from "fastify";
 
 declare module "fastify" {
-    interface FastifyInstance {
-        db: typeof db;
-
-        authenticate: (request: FastifyRequest ) => Promise<void>;
+    interface FastifyRequest {
+        user: string | null;
     }
 
-    interface FastifyRequest{
-        user: string | null;
+    interface FastifyInstance {
+        authenticate: (
+            request: FastifyRequest,
+            reply: FastifyReply
+    ) => Promise<void>;
+    db: typeof db;
     }
 }

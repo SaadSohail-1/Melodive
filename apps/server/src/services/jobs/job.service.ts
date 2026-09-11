@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "../../db/index.js"
-import { jobs } from "../../db/schema.js"
+import { db } from "@melodive/db"
+import { jobs } from "@melodive/db"
 
 export async function createJob(
     type: string,
