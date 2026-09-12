@@ -19,6 +19,8 @@ export interface AudioMetadata{
     sampleRate: number | null;
     channels: number | null;
     bitDepth: number | null;
+
+    hasArtwork: boolean;
 }
 
 interface FFProbeOutput {
@@ -59,6 +61,9 @@ export async function extractMetadata(
         (stream) => stream.codec_type === "audio"
     );
 
+    const videoStream = data.streams?.find(
+        (stream) => stream.codec_type==="video"
+    )
     const tags = normalizeTags(format?.tags ?? {});
     
     return {
@@ -93,6 +98,8 @@ export async function extractMetadata(
           parseNumber(audioStream?.bits_per_raw_sample) ??
           audioStream?.bits_per_sample ??
           null,
+
+        hasArtwork: !!videoStream,
     };
 }
 

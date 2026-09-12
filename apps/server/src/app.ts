@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import databasePlugin from "./plugins/database.js";
 import healthRoute from "./routes/health.js";
 import authRoutes from "./routes/auth.js";
+import libraryRoutes from "./routes/library.js";
 import cookie from "@fastify/cookie";
 import sensible from "@fastify/sensible";
 import authPlugin from "./plugins/auth.js";
@@ -22,6 +23,9 @@ export async function buildApp() {
     });
     await fastify.register(meRoute, {
         prefix: "/api/users"
+    });
+    await fastify.register(libraryRoutes, {
+        prefix: "/api/library",
     });
 
     return fastify;

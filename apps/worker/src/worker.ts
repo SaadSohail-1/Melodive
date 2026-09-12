@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { claimNextJob, completeJob, failJob } from "./jobs/job.worker.js";
+import { processScanLibraryJob } from "./jobs/scan-library.js";
+import { processFetchArtworkJob } from "./jobs/fetch-artwork.js";
 
 const workerId = randomUUID();
 
@@ -18,7 +20,16 @@ export async function startWorker() {
     try {
         switch (job.type) {
             case "SCAN_LIBRARY":
-                console.log(`Processing SCAN_LIBRARY job #${job.id}`)
+                console.log(`Processing SCAN_LIBRARY job #${job.id}`);
+                const payload = job.payload as {path?: string; name?: string};
+                if(!payload || typeof payload.path !== "string") {
+                    throw new Error("Job payload is missing the 'path' string.");
+                } 
+                const result = await processScanLibraryJob(payload.path);
+                console.log(`Job #${job.id} Pipeline results:`, result);
+                break;
+            case "FETCH_ARTWORK":
+                await processFetchArtworkJob(job.payload);
                 break;
             default:
                 throw new Error(`Unknown job type: ${job.type}`);
@@ -34,5 +45,10 @@ export async function startWorker() {
 
    }
 }
+
+startWorker().catch((err) => {
+    console.error("Fatal worker error: ", err);
+    process.exit(1);
+})
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

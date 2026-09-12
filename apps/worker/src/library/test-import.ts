@@ -19,7 +19,7 @@ console.log("3. Importing track...");
 const result = await importTrack({
     filePath,
     librarySourceId,
-    metadata
+    metadata,
 });
 
 console.log("4. Imported: ");

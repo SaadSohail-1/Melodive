@@ -13,12 +13,14 @@ interface ImportTrackInput {
     filePath: string;
     librarySourceId: string;
     metadata: AudioMetadata;
+    checksum: string;
 }
 
 export async function importTrack({
     filePath,
     librarySourceId,
-    metadata
+    metadata,
+    checksum
 }: ImportTrackInput) {
 
     console.log("IMPORT: starting transaction")
@@ -93,6 +95,7 @@ export async function importTrack({
                 format: metadata.format,
                 bitrate: metadata.bitrate,
                 sampleRate: metadata.sampleRate,
+                checkSumSha256: checksum,
                 channels: metadata.channels,
                 bitDepth: metadata.bitDepth,
                 librarySourceId,
@@ -111,6 +114,7 @@ export async function importTrack({
                     durationSeconds: String(metadata.durationSeconds),
                     filePath,
                     librarySourceId,
+                    checkSumSha256: checksum,
                     format: metadata.format,
                     bitrate: metadata.bitrate,
                     sampleRate: metadata.sampleRate,

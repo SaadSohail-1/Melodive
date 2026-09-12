@@ -1,5 +1,5 @@
 import { db } from "@melodive/db";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { jobs } from "@melodive/db/schema";
 import type { InferSelectModel } from "drizzle-orm";
 
@@ -37,17 +37,17 @@ export async function completeJob(
     jobId: number,
     result?: unknown
 ) {
-    await db.execute(sql`
-        UPDATE jobs
-          SET
-            status = 'COMPLETED',
-            result = ${result ?? null},
-            completed_at = NOW(),
-            locked_by = NULL,
-            locked_at = NULL,
-            updated_at = NOW()
-          WHERE id = ${jobId};    
-    `);
+    await db
+    .update(jobs)
+    .set({
+      status: "COMPLETED",
+      result: result || null, 
+      completedAt: new Date(),
+      lockedBy: null,
+      lockedAt: null,
+      updatedAt: new Date(),
+    })
+    .where(eq(jobs.id, jobId));
 }
 
 export async function failJob(
