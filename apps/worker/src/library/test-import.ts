@@ -1,3 +1,4 @@
+import { calculateFileHash } from "./checksum.js";
 import { importTrack } from "./importer.js";
 import { extractMetadata } from "./metadata.js";
 
@@ -14,12 +15,14 @@ console.log("1. Extractin metadata");
 const metadata = await extractMetadata(filePath);
 console.log("2. Metadata extracted");
 console.log(metadata);
+const fileHash = await calculateFileHash(filePath);
 
 console.log("3. Importing track...");
 const result = await importTrack({
     filePath,
     librarySourceId,
     metadata,
+    checksum: fileHash
 });
 
 console.log("4. Imported: ");

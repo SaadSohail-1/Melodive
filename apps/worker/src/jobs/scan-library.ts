@@ -6,6 +6,8 @@ import { importTrack } from "../library/importer.js";
 import { enqueueJob } from "./producer.js";
 import { calculateFileHash } from "../library/checksum.js";
 import { tracks, albums } from "@melodive/db";
+import { access } from "node:fs/promises";
+import type { PathLike } from "node:fs";
 
 export async function processScanLibraryJob(targetPath: string, name="MusicLib") {
     console.log(`[SCAN_LIBRARY]: Starting scan for: ${targetPath}`);
@@ -39,10 +41,12 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
 
     const existingRecords = await db
       .select({
+        id: tracks.id,
         path: tracks.filePath,
         hash:tracks.checkSumSha256,
         albumId: tracks.albumId,
-        artworkPath: albums.artworkPath
+        artworkPath: albums.artworkPath,
+        waveformPath: tracks.waveformPath
       })
       .from(tracks)
       .leftJoin(albums, eq(tracks.albumId, albums.id))
@@ -66,18 +70,50 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     enqueuedAlbums.add(cached.albumId);
                     console.log(`[SCAN_LIBRARY]: Queued FETCH_ARTWORK for skipped album`);
                 }
+
+                let waveformExists = false;
+
+                if (cached.waveformPath) {
+                    try {
+                        await access(cached.waveformPath);
+                        waveformExists = true;
+                    } catch {
+                        waveformExists = false;
+                    }
+                }
+
+                if (!waveformExists) {
+                    console.log(
+                        `[SCAN_LIBRARY]: Waveform missing for track ${cached.id}`
+                    );
+
+                    await enqueueJob("GENERATE_WAVEFORM", {
+                        trackId: cached.id,
+                        sourceFilePath: filePath
+                    });
+
+                    console.log(
+                        `[SCAN_LIBRARY]: Queued GENERATE_WAVEFORM for ${filePath}`
+                    );
+                }
                 continue;
             }
             
             const metadata = await extractMetadata(filePath);
             if(metadata) {
-                const {album} = await importTrack({
+                const {album, track} = await importTrack({
                     filePath,
                     librarySourceId,
                     metadata,
                     checksum: fileHash
                 });
                 successCount++;
+
+                await enqueueJob("GENERATE_WAVEFORM", {
+                    trackId: track.id,
+                    sourceFilePath: filePath
+                })
+
                 if(metadata.hasArtwork && !album.artworkPath && !enqueuedAlbums.has(album.id)) {
                     await enqueueJob(
                         "FETCH_ARTWORK", {

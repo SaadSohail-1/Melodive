@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { claimNextJob, completeJob, failJob } from "./jobs/job.worker.js";
 import { processScanLibraryJob } from "./jobs/scan-library.js";
 import { processFetchArtworkJob } from "./jobs/fetch-artwork.js";
+import { processGenerateWaveformJob } from "./jobs/generate-waveform.js";
 
 const workerId = randomUUID();
 
@@ -30,6 +31,9 @@ export async function startWorker() {
                 break;
             case "FETCH_ARTWORK":
                 await processFetchArtworkJob(job.payload);
+                break;
+            case "GENERATE_WAVEFORM":
+                await processGenerateWaveformJob(job.payload);
                 break;
             default:
                 throw new Error(`Unknown job type: ${job.type}`);
