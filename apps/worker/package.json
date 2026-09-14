@@ -6,7 +6,11 @@
     "scripts": {
         "dev": "tsx watch src/index.ts",
         "build": "tsc",
-        "start": "node dist/index.js"
+        "start": "node dist/index.js",
+        "test:audio-analysis": "tsx src/tests/test-audio-analysis.ts",
+        "test:metadata": "tsx src/tests/test-metadata.ts",
+        "test:scanner": "tsx src/tests/test-scanner.ts",
+        "test:importer": "tsx src/tests/test-import.ts"
     },
     "dependencies": {
         "drizzle-orm": "^0.45.2",
