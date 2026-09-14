@@ -54,12 +54,12 @@ export async function processFetchArtworkJob(payload: unknown) {
         console.log(`[FETCH_ARTWORK]: Extracting embedded binary from audio file...`);
         try {
             await execFileAsync("ffmpeg", [
-            "-y",
-            "-i", sourceFilePath,
-            "-an", 
-            "-vcodec", "mjpeg",
-            "-frames:v", "1",
-            outputPath
+            "-y", //"yes", automatically overwrites the outputPath file if it already exists without prompting
+            "-i", sourceFilePath, //The input audio file which is at sourceFilePath
+            "-an",  //"Audio Null",strips out the audio data entirely since we only care about the image
+            "-vcodec", "mjpeg", //video-codec: forces the output stream to be a JPEG img
+            "-frames:v", "1", //tells ffmpeg to only extract ONE frame (which is the cover art)
+            outputPath //saves the extracted artwork to the outputPath
         ]);
         artworkFound = true;
 
