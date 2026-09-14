@@ -1,8 +1,12 @@
 import {execFile} from "node:child_process";
 import { promisify } from "node:util";
 
-const execFileAsync = promisify(execFile)
-
+const execFileAsync = promisify(execFile);
+/*
+we do not use exec here because its not necessary to spawn a shell
+we just need the metadata which execFile saves in a buffer and gives us the final output(stdout)
+ffprobe runs almost instantly and outputs a small block of text, buffering it is a good approach instead of using spawn to stream it
+*/
 export interface AudioMetadata{
     title: string | null;
     artist: string | null;
@@ -45,13 +49,11 @@ export async function extractMetadata(
 ) : Promise<AudioMetadata> {
 
     const { stdout } = await execFileAsync("ffprobe", [
-        "-v",
-        "quiet",
-        "-print_format",
-        "json",
-        "-show_format",
-        "-show_streams",
-        filePath,
+        "-v", "quiet", //v:verbosity, basically we're shutting up ffprobe for a cleaner output
+        "-print_format", "json", //this is crucial, it tells ffprobe to spit the data out in json string
+        "-show_format", //gets container level info (e.g., duration, file size, ID3 tags like artist, title)
+        "-show_streams", //gets track-level info(e.g., is it mono or stereo or what codec is it using)
+        filePath, //location of the file we're analyzing
     ]);
 
     const data = JSON.parse(stdout) as FFProbeOutput;
