@@ -146,7 +146,7 @@ export const tracks = pgTable("tracks", {
         precision: 8,
         scale: 3,
     }).notNull(),
-    //why do we have filePath AND librarySource id
+    
     filePath: text("file_path").notNull().unique(),
 
     librarySourceId: uuid("library_source_id")
