@@ -41,12 +41,11 @@ export async function processGenerateWaveformJob(
     */
    const { stdout } = await execFileAsync(
     "ffmpeg", [
-        "-i",
-        sourceFilePath,
-        "-ac", "1",
-        "-ar", "8000",
-        "-f", "s16le",
-        "-"
+        "-i", sourceFilePath, //input from sourceFilePath
+        "-ac", "1", //converts stereo sounds (left and right) to mono channel
+        "-ar", "8000", //8khz (funfact: 8khz is telephone quality)
+        "-f", "s16le", //converts to signed 16-bit little-endian and outputs raw audio data poiints
+        "-" //output to stdout
     ],
     {
         encoding: "buffer",
