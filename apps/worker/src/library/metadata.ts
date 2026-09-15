@@ -15,6 +15,7 @@ export interface AudioMetadata{
     trackNumber: number | null;
     discNumber: number | null;
     year: number | null;
+    genre: string | null;
 
     durationSeconds: number | null;
     format: string;
@@ -80,6 +81,8 @@ export async function extractMetadata(
         year:
           parseNumber(tags.date) ?? 
           parseNumber(tags.year),
+
+        genre: tags.genre ?? null,
 
         durationSeconds:
           Number(format?.duration ?? 0),
