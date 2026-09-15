@@ -72,6 +72,7 @@ export async function importTrack({
                 title: metadata.album,
                 artistId: artist.id,
                 releaseYear: metadata.year,
+                genres: metadata.genre ? [metadata.genre] : []
               })
               .returning();
         }
