@@ -1,0 +1,5 @@
+name: melodive_environment
+variables:
+  - name: base_url
+    value: http://localhost:3000
+    description: localhost base url for the API
