@@ -1,4 +1,4 @@
-import { albums, artists, db, trackArtists } from "@melodive/db";
+import { albums, artists, db, trackArtists, tracks } from "@melodive/db";
 import { count, countDistinct, eq } from "drizzle-orm";
 
 export async function getArtists(page: number, limit: number) {
@@ -70,4 +70,135 @@ export async function getArtist(id: string) {
         );
 
         return result ?? null;
+}
+
+export async function getAlbums(page: number, limit: number) {
+    const offset = (page - 1) * limit;
+
+    const [totalResult] = await db
+        .select({
+            total: count(),
+        })
+        .from(albums);
+
+    const result = await db
+        .select({
+            id: albums.id,
+            title: albums.title,
+            artists: {
+                id: artists.id,
+                name: artists.name
+            },
+            releaseYear: albums.releaseYear,
+            artworkPath: albums.artworkPath,
+            totalTracks: albums.totalTracks
+        })
+        .from(albums)
+        .leftJoin(
+            artists,
+            eq(albums.artistId, artists.id)
+        )
+        .orderBy(albums.title)
+        .limit(limit)
+        .offset(offset)
+
+        return {
+            albums: result,
+            total: totalResult?.total ?? 0,
+        };
+}
+
+export async function getAlbum(id: string) {
+    const [result] = await db
+        .select({
+            id: albums.id,
+            title: albums.title,
+            artist: {
+                id: artists.id,
+                name: artists.name
+            },
+            releaseYear: albums.releaseYear,
+            artworkPath: albums.artworkPath,
+            genres: albums.genres,
+            totalTracks: albums.totalTracks,
+            totalDiscs: albums.totalDiscs
+        })
+        .from(albums)
+        .innerJoin(
+            artists,
+            eq(albums.artistId, artists.id)
+        )
+        .where(eq(albums.id, id))
+
+        return result ?? null;
+}
+
+export async function getArtistAlbums(artistId: string) {
+    const result = await db
+      .select({
+        id: albums.id,
+        title: albums.title,
+        releaseYear: albums.releaseYear,
+        artworkPath: albums.artworkPath,
+        totalTracks: albums.totalTracks,
+        totalDiscs: albums.totalDiscs
+      })
+      .from(albums)
+      .where(eq(albums.artistId, artistId))
+      .orderBy(albums.releaseYear, albums.title)
+
+    return result;
+}
+
+export async function getAlbumTracks(albumId: string) {
+    const result = await db
+        .select({
+            id: tracks.id,
+            title: tracks.title,
+            trackNumber: tracks.trackNumber,
+            discNumber: tracks.discNumber,
+            durationSeconds: tracks.durationSeconds,
+            format: tracks.format
+        })
+        .from(tracks)
+        .where(eq(tracks.albumId, albumId))
+        .orderBy(tracks.discNumber, tracks.trackNumber)
+
+    return result;
+}
+
+export async function getTracks(page: number, limit: number){
+    const offset = ( page - 1 ) * limit;
+
+    const [totalResult] = await db
+        .select({
+            total: count()
+        })
+        .from(tracks);
+
+    const result = await db
+        .select({
+            id: tracks.id,
+            title: tracks.title,
+            album: albums.title,
+            artist: artists.name,
+            filePath: tracks.filePath,
+        })
+        .from(tracks)
+        .innerJoin(
+            albums,
+            eq(tracks.albumId, albums.id)
+        )
+        .innerJoin(
+            artists,
+            eq(albums.artistId, artists.id)
+        )
+        .orderBy(albums.title, artists.name, tracks.title)
+        .limit(limit)
+        .offset(offset)
+
+    return {
+        tracks: result,
+        total: totalResult?.total ?? 0
+    };
 }
