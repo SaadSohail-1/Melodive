@@ -3,6 +3,11 @@ import {
     getArtists, 
     scanLibrary,
     getArtist,
+    getAlbums,
+    getAlbum,
+    getArtistAlbums,
+    getAlbumTracks,
+    getTracks
 } from "../controllers/library.controller.js";
 
 const scanLibraryOpts = {
@@ -93,12 +98,120 @@ const getArtistOpts = {
     }
 }
 
+const getAlbumsOpts = {
+    schema: {
+        querystring: {
+            type: "object",
+            properties: {
+                pages: {
+                    type: "integer",
+                    minimum: 1,
+                    default: 1,
+                },
+                limit: {
+                    type: "integer",
+                    minimum: 1,
+                    maximum: 100,
+                    default: 20
+                }
+            }
+        }
+    }
+}
+
+const getAlbumOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["id"],
+            properties: {
+                id: {
+                    type: "string",
+                    format: "uuid"
+                }
+            }
+        }
+    }
+}
+
+const getArtistAlbumOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["id"],
+            properties: {
+                id: {
+                    type: "string",
+                    format: "uuid"
+                }
+            }
+        }
+    }
+}
+
+const getAlbumTracksOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["id"],
+            properties: {
+                id: {
+                    type: "string",
+                    format: "uuid"
+                }
+            }
+        }
+    }
+}
+
+const getItemWithIdOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["id"],
+            properties: {
+                id: {
+                    type: "string",
+                    format: "uuid"
+                }
+            }
+        }
+    }
+}
+
+const getTracksOpts = {
+    schema: {
+        querystring: {
+            type: "object",
+            properties: {
+                page: {
+                    type: "integer",
+                    minimum: 1,
+                    default: 1
+                },
+                limit: {
+                    type: "integer",
+                    maximum: 100,
+                    default: 20
+                }
+            }
+        }
+    }
+}
+
 const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/scan", scanLibraryOpts, scanLibrary);
     //artists endpoints
     fastify.get("/artists", getArtistsOpts, getArtists);
     fastify.get("/artists/:id", getArtistOpts, getArtist);
     //album endpoints
+    fastify.get("/albums", getAlbumsOpts, getAlbums);
+    fastify.get("/albums/:id", getAlbumOpts, getAlbum);
+    fastify.get("/artists/:id/albums", getArtistAlbumOpts, getArtistAlbums);//get all albums by an artist
+    //track endpoints
+    fastify.get("/tracks", getTracksOpts, getTracks);
+    //get all tracks from a specific album
+    fastify.get("/albums/:id/tracks", getAlbumTracksOpts, getAlbumTracks)
 }
 
 export default libraryRoutes;
