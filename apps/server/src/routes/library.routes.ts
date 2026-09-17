@@ -8,7 +8,8 @@ import {
     getArtistAlbums,
     getAlbumTracks,
     getTracks,
-    getTrack
+    getTrack,
+    searchLibrary
 } from "../controllers/library.controller.js";
 
 const scanLibraryOpts = {
@@ -230,6 +231,8 @@ const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/tracks/:id", getTrackOpts, getTrack);
     //get all tracks from a specific album
     fastify.get("/albums/:id/tracks", getAlbumTracksOpts, getAlbumTracks)
+    //search route
+    fastify.get("/search", searchLibrary);
 }
 
 export default libraryRoutes;
