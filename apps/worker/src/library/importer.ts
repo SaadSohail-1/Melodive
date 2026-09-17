@@ -6,6 +6,7 @@ import {
     tracks,
     trackArtists,
  } from "@melodive/db";
+ import { stat } from "node:fs/promises"
 
 import type { AudioMetadata } from "./metadata.js";
 import { logger } from "../config/logger.js";
@@ -26,6 +27,9 @@ export async function importTrack({
 
     try {
       return await db.transaction(async (tx) => {
+        
+          const fileStats = await stat(filePath);
+          const fileSizeBytes = fileStats.size;
 
           if(!metadata.artist) throw new Error(`Missing artist metadata: ${filePath}`);
           if(!metadata.album) throw new Error(`Missing album metadata: ${filePath}`);
@@ -134,6 +138,7 @@ export async function importTrack({
                   checkSumSha256: checksum,
                   channels: metadata.channels,
                   bitDepth: metadata.bitDepth,
+                  fileSizeBytes,
                   librarySourceId,
                   updatedAt: new Date(),
                 })
@@ -156,7 +161,8 @@ export async function importTrack({
                       bitrate: metadata.bitrate,
                       sampleRate: metadata.sampleRate,
                       channels: metadata.channels,
-                      bitDepth: metadata.bitDepth
+                      bitDepth: metadata.bitDepth,
+                      fileSizeBytes
                     })
                     .returning();
 
