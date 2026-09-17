@@ -6,7 +6,7 @@ import { importTrack } from "../library/importer.js";
 import { enqueueJob } from "./producer.js";
 import { calculateFileHash } from "../library/checksum.js";
 import { tracks, albums } from "@melodive/db";
-import { access } from "node:fs/promises";
+import { access, stat } from "node:fs/promises";
 import { logger } from "../config/logger.js";
 
 export async function processScanLibraryJob(targetPath: string, name="MusicLib") {
@@ -54,6 +54,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
         hash:tracks.checkSumSha256,
         albumId: tracks.albumId,
         artworkPath: albums.artworkPath,
+        fileSizeBytes: tracks.fileSizeBytes,
         waveformPath: tracks.waveformPath,
         loudnessLufs: tracks.loudnessLufs,
         gainDb: tracks.gainDb
@@ -71,7 +72,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
 
             if(cached?.hash === fileHash) {
                 console.log(`[SCAN_LIBRARY]: Unchanged, skipping ${filePath}`);
-
+                
                 if(cached.albumId && !cached.artworkPath && !enqueuedAlbums.has(cached.albumId)) {
                     await enqueueJob("FETCH_ARTWORK", { 
                     albumId: cached.albumId, 
@@ -133,6 +134,19 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     })
                 }
                 
+                if(cached.fileSizeBytes === null) {
+                    const fileStats = await stat(filePath);
+                    await db
+                      .update(tracks)
+                      .set({
+                        fileSizeBytes: fileStats.size,
+                        updatedAt: new Date(),
+                      })
+                      .where(eq(tracks.id, cached.id));
+
+                    console.log(`[SCAN_LIBRARY]: Updated file size for ${filePath}`)
+                }
+
                 continue;
             }
             
