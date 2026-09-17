@@ -44,13 +44,13 @@ export async function scanLibrary(
     });
 }
 
-type GetArtistsQuery = {
-    page?: number;
-    limit?: number;
-}
-
 export async function getArtists(
-    request: FastifyRequest<{Querystring: GetArtistsQuery}>,
+    request: FastifyRequest<{
+        Querystring: {
+            page?: number;
+            limit?: number;
+        } 
+    }>,
     reply: FastifyReply
 ) {
 
@@ -90,13 +90,13 @@ export async function getArtist(
     })
 }
 
-type GetAlbumsQuery = {
-    page?: number;
-    limit?: number;
-}
-
 export async function getAlbums(
-    request: FastifyRequest<{Querystring: GetAlbumsQuery}>,
+    request: FastifyRequest<{
+        Querystring: {
+            page?: number;
+            limit?: number;
+        }
+    }>,
     reply: FastifyReply
 ) {
     const page = request.query.page ?? 1;
@@ -212,5 +212,26 @@ export async function getTrack(
 
     return reply.code(200).send({
         data: track
+    })
+}
+
+export async function searchLibrary(
+    request: FastifyRequest<{
+        Querystring: {
+            q?: string
+        }
+    }>,
+    reply: FastifyReply
+) {
+    const query = request.query.q?.trim();
+
+    if(!query) {
+        return reply.code(400).send({
+            error: "Search query is required"
+        });
+    }
+    const results = await libraryService.searchLibrary(query);
+    return reply.code(200).send({
+        data: results
     })
 }
