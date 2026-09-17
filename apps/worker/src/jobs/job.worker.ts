@@ -1,6 +1,7 @@
 import { db } from "@melodive/db";
 import { eq, sql } from "drizzle-orm";
 import { jobs } from "@melodive/db/schema";
+import { logger } from "../config/logger.js";
 import type { InferSelectModel } from "drizzle-orm";
 
 type Job = InferSelectModel<typeof jobs>;
@@ -30,7 +31,18 @@ export async function claimNextJob(
         WHERE jobs.id = next_job.id
         RETURNING jobs.*;
     `);
-    return (result.rows[0] as Job | undefined) ?? null; 
+    const job = (result.rows[0] as Job | undefined) ?? null; 
+
+    if(job) {
+      await logger.info("JOB_CLAIMED", {
+        details: {
+          jobId: job.id,
+          jobType: job.type,
+          workerId
+        }
+      })
+    }
+    return job;
 }
 
 export async function completeJob(
@@ -48,13 +60,19 @@ export async function completeJob(
       updatedAt: new Date(),
     })
     .where(eq(jobs.id, jobId));
+
+    await logger.info("JOB_COMPLETED", {
+      details: {
+        jobId: jobId
+      }
+    })
 }
 
 export async function failJob(
     jobId: number,
     error: string
 ) {
-    await db.execute(sql`
+    const result = await db.execute(sql`
         UPDATE jobs
         SET
           status = CASE
@@ -66,6 +84,34 @@ export async function failJob(
           locked_at = NULL,
           locked_by = NULL,
           updated_at = NOW()
-        WHERE id = ${jobId};
+        WHERE id = ${jobId}
+        RETURNING id, status, attempts, max_retries;
     `);
+
+    const job = result.rows[0] as {
+      id: number,
+      status: string,
+      attempts: number,
+      max_retries: number
+    } | undefined;
+
+    if(!job) {
+      await logger.error("JOB_FAILURE_UPDATE_FAILED", {
+        details: {
+          jobId
+        },
+        error: new Error(`Could not update failed job ${jobId}`)
+      })
+      return;
+    }
+    
+    await logger.error("JOB_FAILED", {
+      details: {
+        jobId: job.id,
+        jobStatus: job.status,
+        attempts: job.attempts,
+        maxRetries: job.max_retries
+      },
+      error
+    })
 }
