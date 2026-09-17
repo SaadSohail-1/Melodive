@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { createJob } from "../services/jobs/job.service.js";
 import * as libraryService from "../services/library/library.service.js"
+import { logger } from "../config/logger.js";
 
 export async function scanLibrary(
     request: FastifyRequest,
@@ -16,6 +17,26 @@ export async function scanLibrary(
             path: body.path,
         },
     );
+
+    if(!job) {
+        await logger.error("JOB_CREATION_FAILED", {
+            details: {
+                path: body.path,
+                route: "/api/library/scan"
+            },
+            error: new Error("could not create job")
+        })
+        return reply.code(500).send({
+            error: "could not create job"
+        });
+    }
+
+    await logger.info("LIBRARY_SCAN_REQUESTED", {
+        details: {
+            jobId: job.id,
+            path: body.path
+        }
+    })
 
     return reply.code(202).send({
         job_id: job?.id,
