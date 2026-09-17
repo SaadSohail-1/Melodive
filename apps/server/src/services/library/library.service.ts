@@ -1,5 +1,5 @@
 import { albums, artists, db, trackArtists, tracks } from "@melodive/db";
-import { count, countDistinct, eq } from "drizzle-orm";
+import { count, countDistinct, eq, ilike } from "drizzle-orm";
 
 export async function getArtists(page: number, limit: number) {
     const offset = (page - 1) * limit;
@@ -240,4 +240,41 @@ export async function getTrack(id: string){
         )
 
     return result ?? null;
+}
+
+export async function searchLibrary(query: string){
+    const search = `%${query}%`;
+
+    const [artistResults, albumResults, trackResults] = await Promise.all([
+        db
+          .select({
+            id: artists.id,
+            name: artists.name,
+          })
+          .from(artists)
+          .where(ilike(artists.name, search)),
+
+        db
+          .select({
+            id: albums.id,
+            title: albums.title
+          })
+          .from(albums)
+          .where(ilike(albums.title, search)),
+
+        db
+          .select({
+            id: tracks.id,
+            title: tracks.title,
+            albumId:  tracks.albumId,
+          })
+          .from(tracks)
+          .where(ilike(tracks.title, search)),
+    ]);
+
+    return {
+        artists: artistResults,
+        albums: albumResults,
+        tracks: trackResults,
+    };
 }
