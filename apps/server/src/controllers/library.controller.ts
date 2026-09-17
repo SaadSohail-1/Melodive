@@ -193,4 +193,24 @@ export async function getTracks(
     })
 }
 
+export async function getTrack(
+    request: FastifyRequest<{
+        Params: {
+            id: string
+        }
+    }>,
+    reply: FastifyReply
+) {
+    const {id} = request.params;
+    const track = await libraryService.getTrack(id);
 
+    if(!track) {
+        return reply.code(404).send({
+            error: "Track not found."
+        })
+    }
+
+    return reply.code(200).send({
+        data: track
+    })
+}
