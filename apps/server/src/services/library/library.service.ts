@@ -182,7 +182,15 @@ export async function getTracks(page: number, limit: number){
             title: tracks.title,
             album: albums.title,
             artist: artists.name,
-            filePath: tracks.filePath,
+            trackNumber: tracks.trackNumber,
+            discNumber: tracks.discNumber,
+            durationSeconds: tracks.durationSeconds,
+            format: tracks.format,
+            bitrate: tracks.bitrate,
+            sampleRate: tracks.sampleRate,
+            channels: tracks.channels,
+            fileSizeBytes: tracks.fileSizeBytes,
+            waveFormPath: tracks.waveformPath
         })
         .from(tracks)
         .innerJoin(
@@ -201,4 +209,35 @@ export async function getTracks(page: number, limit: number){
         tracks: result,
         total: totalResult?.total ?? 0
     };
+}
+
+export async function getTrack(id: string){
+     const [result] = await db
+        .select({
+            id: tracks.id,
+            title: tracks.title,
+            album: albums.title,
+            artist: artists.name,
+            trackNumber: tracks.trackNumber,
+            discNumber: tracks.discNumber,
+            durationSeconds: tracks.durationSeconds,
+            format: tracks.format,
+            bitrate: tracks.bitrate,
+            sampleRate: tracks.sampleRate,
+            channels: tracks.channels,
+            fileSizeBytes: tracks.fileSizeBytes,
+            waveFormPath: tracks.waveformPath
+        })
+        .from(tracks)
+        .where(eq(tracks.id, id))
+        .innerJoin(
+            albums,
+            eq(tracks.albumId, albums.id)
+        )
+        .innerJoin(
+            artists,
+            eq(albums.artistId, artists.id)
+        )
+
+    return result ?? null;
 }
