@@ -7,7 +7,8 @@ import {
     getAlbum,
     getArtistAlbums,
     getAlbumTracks,
-    getTracks
+    getTracks,
+    getTrack
 } from "../controllers/library.controller.js";
 
 const scanLibraryOpts = {
@@ -134,7 +135,7 @@ const getAlbumOpts = {
     }
 }
 
-const getArtistAlbumOpts = {
+const getArtistAlbumsOpts = {
     schema: {
         params: {
             type: "object",
@@ -199,6 +200,22 @@ const getTracksOpts = {
     }
 }
 
+const getTrackOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["id"],
+            properties: {
+                id: {
+                    type: "string",
+                    format: "uuid"
+                }
+            }
+        }
+    }
+}
+
+
 const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/scan", scanLibraryOpts, scanLibrary);
     //artists endpoints
@@ -207,9 +224,10 @@ const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     //album endpoints
     fastify.get("/albums", getAlbumsOpts, getAlbums);
     fastify.get("/albums/:id", getAlbumOpts, getAlbum);
-    fastify.get("/artists/:id/albums", getArtistAlbumOpts, getArtistAlbums);//get all albums by an artist
+    fastify.get("/artists/:id/albums", getArtistAlbumsOpts, getArtistAlbums);//get all albums by an artist
     //track endpoints
     fastify.get("/tracks", getTracksOpts, getTracks);
+    fastify.get("/tracks/:id", getTrackOpts, getTrack);
     //get all tracks from a specific album
     fastify.get("/albums/:id/tracks", getAlbumTracksOpts, getAlbumTracks)
 }
