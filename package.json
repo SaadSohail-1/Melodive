@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@fastify/sensible": "^6.0.5",
+    "@melodive/logger": "^0.1.0",
     "drizzle-orm": "^0.45.2"
   }
 }
