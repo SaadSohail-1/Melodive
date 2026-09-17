@@ -7,9 +7,15 @@ import { enqueueJob } from "./producer.js";
 import { calculateFileHash } from "../library/checksum.js";
 import { tracks, albums } from "@melodive/db";
 import { access } from "node:fs/promises";
+import { logger } from "../config/logger.js";
 
 export async function processScanLibraryJob(targetPath: string, name="MusicLib") {
     console.log(`[SCAN_LIBRARY]: Starting scan for: ${targetPath}`);
+    await logger.info("SCAN_LIBRARY_STARTED", {
+        details: {
+            path: targetPath
+        }
+    })
 
     let [sourceRecord] = await db
       .select()
@@ -73,6 +79,12 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     });
                     enqueuedAlbums.add(cached.albumId);
                     console.log(`[SCAN_LIBRARY]: Queued FETCH_ARTWORK for skipped album`);
+                    await logger.info("QUEUED_FETCH_ARTWORK", {
+                        details: {
+                            path: filePath,
+                            trackState: "existing"
+                        }
+                    })
                 }
 
                 let waveformExists = false;
@@ -96,6 +108,13 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                         sourceFilePath: filePath
                     });
 
+                    await logger.info("QUEUED_GENERATE_WAVEFORM", {
+                        details: {
+                            path: filePath,
+                            trackState: "existing"
+                        }
+                    })
+
                     console.log(
                         `[SCAN_LIBRARY]: Queued GENERATE_WAVEFORM for ${filePath}`
                     );
@@ -106,13 +125,27 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                         trackId: cached.id,
                         sourceFilePath: filePath
                     })
+                    await logger.info("QUEUED_ANALYZE_AUDIO", {
+                        details: {
+                            path: filePath,
+                            trackState: "existing"
+                        }
+                    })
                 }
                 
                 continue;
             }
             
             const metadata = await extractMetadata(filePath);
+            
             if(metadata) {
+
+                await logger.info("EXTRACTED_METADATA", {
+                    details: {
+                        path: filePath
+                    }
+                })
+
                 const {album, track} = await importTrack({
                     filePath,
                     librarySourceId,
@@ -126,9 +159,23 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     sourceFilePath: filePath
                 });
 
+                await logger.info("QUEUED_GENERATE_WAVEFORM", {
+                    details: {
+                        path: filePath,
+                        trackState: "new"
+                    }
+                })
+
                 await enqueueJob("ANALYZE_AUDIO", {
                     trackId: track.id,
                     sourceFilePath: filePath
+                })
+
+                await logger.info("QUEUED_ANALYZE_AUDIO", {
+                    details: {
+                        path: filePath,
+                        trackState: "new"
+                    }
                 })
 
                 if(metadata.hasArtwork && !album.artworkPath && !enqueuedAlbums.has(album.id)) {
@@ -139,10 +186,22 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     });
                     enqueuedAlbums.add(album.id);
                     console.log(`[SCAN_LIBRARY]: Queued FETCH_ARTWORK for album ${album.title}`)
+                    await logger.info("QUEUED_FETCH_ARTWORK", {
+                        details: {
+                            path: filePath,
+                            trackState: "new"
+                        }
+                    })
                 }
             }
         } catch (error) {
             console.log(`[SCAN_LIBRARY]: Failed to process ${filePath}:`, error);
+            await logger.error("SCAN_LIBRARY_FAILED", {
+                details: {
+                    path: filePath
+                },
+                error
+            })
         }
     }
     // orphan cleanup logic, removing the records of the files from db that no longer exist in drive.
@@ -157,6 +216,11 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
     }
     if(orphansToRemove.length>0) {
         console.log(`[SCAN_LIBRARY]: found ${orphansToRemove.length} orphaned files. Removing from database...`);
+        await logger.info("ORPHANS_FOUND", {
+            details: {
+                orphanCount: orphansToRemove.length,
+            }
+        })
         try {
             await db
               .delete(tracks)
@@ -165,10 +229,24 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
             console.log(`[SCAN_LIBRARY]: Successfully removed ${orphansToRemove.length} orphaned tracks.`);
         } catch (error) {
             console.error(`[SCAN_LIBRARY]: Failed to delete orphans:`, error);
+            await logger.error("ORPHAN_CLEANUP_FAILED", {
+                details: {
+                    orphansCount: orphansToRemove.length
+                },
+                error
+            })
         }
     }
 
     console.log(`[SCAN_LIBRARY]: Finished. Successfully imported ${successCount} tracks.`);
+    await logger.info("SCAN_LIBRARY_FINISHED", {
+        details: {
+            path: targetPath,
+            filesFound: audioFiles.length,
+            filesImported: successCount,
+            orphansRemoved: orphansToRemove.length
+        }
+    });
     return {
         scannedPath: targetPath,
         filesFound: audioFiles.length,
