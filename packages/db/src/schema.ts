@@ -279,7 +279,7 @@ export const playlists = pgTable("playlists", {
 
     name: varchar("name", {length: 255}).notNull(),
 
-    decription: text("description"),
+    description: text("description"),
 
     isPublic: boolean("is_public").notNull().default(false),
 
