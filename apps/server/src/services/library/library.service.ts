@@ -278,3 +278,17 @@ export async function searchLibrary(query: string){
         tracks: trackResults,
     };
 }
+
+export async function getTrackForStreaming(id: string) {
+    const [result] = await db
+      .select({
+        id: tracks.id,
+        filePath: tracks.filePath,
+        fileSizeBytes: tracks.fileSizeBytes,
+        format: tracks.format,
+      })
+      .from(tracks)
+      .where(eq(tracks.id, id));
+
+      return result ?? null;
+}
