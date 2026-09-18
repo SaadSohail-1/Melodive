@@ -85,7 +85,7 @@ export async function getAlbums(page: number, limit: number) {
         .select({
             id: albums.id,
             title: albums.title,
-            artists: {
+            artist: {
                 id: artists.id,
                 name: artists.name
             },
