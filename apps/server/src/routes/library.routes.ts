@@ -9,7 +9,8 @@ import {
     getAlbumTracks,
     getTracks,
     getTrack,
-    searchLibrary
+    searchLibrary,
+    streamTrack
 } from "../controllers/library.controller.js";
 
 const scanLibraryOpts = {
@@ -216,6 +217,17 @@ const getTrackOpts = {
     }
 }
 
+const searchLibraryOpts = {
+    schema: {
+        querystring: {
+            type: "object",
+            properties: {
+                q: {type: "string"}
+            }
+        }
+    }
+}
+
 
 const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/scan", scanLibraryOpts, scanLibrary);
@@ -229,10 +241,11 @@ const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     //track endpoints
     fastify.get("/tracks", getTracksOpts, getTracks);
     fastify.get("/tracks/:id", getTrackOpts, getTrack);
+    fastify.get("/tracks/:id/stream", streamTrack);
     //get all tracks from a specific album
     fastify.get("/albums/:id/tracks", getAlbumTracksOpts, getAlbumTracks)
     //search route
-    fastify.get("/search", searchLibrary);
+    fastify.get("/search", searchLibraryOpts, searchLibrary);
 }
 
 export default libraryRoutes;
