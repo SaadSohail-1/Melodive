@@ -2,6 +2,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import { createJob } from "../services/jobs/job.service.js";
 import * as libraryService from "../services/library/library.service.js"
 import { logger } from "../config/logger.js";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 
 export async function scanLibrary(
     request: FastifyRequest,
@@ -234,4 +236,107 @@ export async function searchLibrary(
     return reply.code(200).send({
         data: results
     })
+}
+
+export async function streamTrack(
+    request: FastifyRequest<{
+        Params: {
+            id: string
+        }
+    }>,
+    reply: FastifyReply
+) {
+    const {id} = request.params;
+    const track = await libraryService.getTrackForStreaming(id);
+
+    if(!track){
+        return reply.code(404).send({
+            error: "Track not found"
+        })
+    }
+
+    try {
+        const file = await stat(track.filePath);
+        if(!file.isFile()){
+            return reply.code(404).send({
+                error: "Audio file not found"
+            });
+        }
+    } catch (error) {
+        return reply.code(404).send({
+            error: "Audio file not found"
+        })
+    }
+
+    const fileSize = Number(track.fileSizeBytes);
+    const range = request.headers.range;
+
+    if(!range) {
+        const stream = createReadStream(track.filePath);
+        return reply
+            .code(200)
+            .header("Content-Type", getAudioContentType(track.format))
+            .header("Content-Length", fileSize)
+            .header("Accept-Ranges", "bytes")
+            .send(stream);
+    }
+
+    const match = range.match(/^bytes=(\d*)-(\d*)$/) //parsing range header
+    if(!match) {
+        return reply
+            .code(416)
+            .header("Content-Range", `bytes */${fileSize}`)
+            .send();
+    }
+
+    const start = match[1] ? Number(match[1]) : 0;
+
+    let end = match[2] ? Number(match[2]) : fileSize - 1;
+
+    if(start >= fileSize || start > end) {
+        return reply
+            .code(416)
+            .header("Content-Range", `bytes */${fileSize}`)
+            .send()
+    }
+
+    end = Math.min(end, fileSize - 1);
+
+    const chunkSize = end - start + 1;
+
+    const stream = createReadStream(track.filePath, {
+        start,
+        end
+    })
+
+    return reply
+        .code(206)
+        .header("Content-Type", getAudioContentType(track.format))
+        .header("Accept-Ranges", "bytes")
+        .header("Content-Range", `bytes ${start}-${end}/${fileSize}`)
+        .header("Content-Length", chunkSize)
+        .send(stream);
+}
+
+function getAudioContentType(format: string | null) {
+    switch(format?.toLowerCase()) {
+        case "mp3":
+            return "audio/mpeg";
+
+        case "flac":
+            return "audio/flac";
+
+        case "wav":
+            return "audio/wav";
+        
+        case "ogg":
+            return "audio/ogg";
+
+        case "m4a":
+        case "mp4":
+            return "audio/mp4";
+
+        default:
+            return "application/octet-stream";
+    }
 }
