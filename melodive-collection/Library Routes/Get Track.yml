@@ -1,0 +1,16 @@
+info:
+  name: Get Track
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: "{{base_url}}/api/library/tracks/6dd5d513-2d22-46da-89ac-b0c3c9949f33"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

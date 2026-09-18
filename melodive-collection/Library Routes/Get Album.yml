@@ -1,11 +1,11 @@
 info:
-  name: Get artists
+  name: Get Album
   type: http
-  seq: 6
+  seq: 1
 
 http:
   method: GET
-  url: "{{base_url}}/api/library/artists"
+  url: "{{base_url}}/api/library/albums/0245e2a8-4037-4796-a367-a9eed3d7e6c7"
   auth: inherit
 
 settings:

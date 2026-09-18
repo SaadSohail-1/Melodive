@@ -1,11 +1,11 @@
 info:
-  name: Get Artist's Albums
+  name: Health
   type: http
-  seq: 12
+  seq: 1
 
 http:
   method: GET
-  url: "{{base_url}}/api/library/artists/84c11389-7c80-45da-8acb-91067186e15d/albums"
+  url: http://localhost:3000/health
   auth: inherit
 
 settings:

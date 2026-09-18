@@ -1,11 +1,11 @@
 info:
-  name: Get artist
+  name: Get Tracks
   type: http
-  seq: 8
+  seq: 1
 
 http:
   method: GET
-  url: "{{base_url}}/api/library/artists/a51f4753-a112-4164-90e4-2bf248eebaae"
+  url: "{{base_url}}/api/library/tracks"
   auth: inherit
 
 settings:
