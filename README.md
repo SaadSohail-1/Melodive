@@ -6,32 +6,32 @@ The goal is to build a personal music platform with a modern streaming experienc
 
 ---
 
-## ✨ Planned Features
+## Planned Features
 
-* 🎵 Local music library
-* 🔎 Full-text music search
-* 🎧 Audio streaming
-* ⏯️ Play / pause / seek
-* 📚 Artists, albums, and tracks
-* 🖼️ Album artwork
-* 📋 Playlists
-* ❤️ Favorites
-* 🕘 Recently played
-* 🔀 Shuffle and repeat
-* 📊 Listening statistics
-* 🎁 Wrapped-style yearly statistics
-* 🌊 Audio waveforms
-* 🎚️ Audio analysis
-* 👤 User authentication
-* 📱 Responsive interface
-* ⌨️ Keyboard shortcuts
-* 📡 Remote access
-* ⚙️ Background processing
-* 📂 Automatic library scanning
+* Local music library
+* Full-text music search
+* Audio streaming
+* Play / pause / seek
+* Artists, albums, and tracks
+* Album artwork
+* Playlists
+* Favorites
+* Recently played
+* Shuffle and repeat
+* Listening statistics
+* Wrapped-style yearly statistics
+* Audio waveforms
+* Audio analysis
+* User authentication
+* Responsive interface
+* Keyboard shortcuts
+* Remote access
+* Background processing
+* Automatic library scanning
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 Melodive uses a modular monorepo architecture:
 
@@ -82,7 +82,7 @@ Fastify API
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Technology  | Purpose                    |
 | ----------- | -------------------------- |
@@ -100,7 +100,7 @@ Fastify API
 
 ---
 
-## 📁 Documentation
+## Documentation
 
 Detailed project documentation is maintained under [`docs/`](docs/).
 
@@ -128,7 +128,7 @@ The backend foundation document explains the current implementation, including:
 
 ---
 
-## 🔐 Authentication
+## Authentication
 
 Authentication uses:
 
@@ -146,7 +146,7 @@ Session tokens are generated cryptographically and only their hashes are stored 
 
 ---
 
-## 🗄️ Database
+## Database
 
 The primary database is PostgreSQL.
 
@@ -179,7 +179,7 @@ The database contains domains for:
 
 ---
 
-## 🚧 Development Status
+## Development Status
 
 ### Foundation
 
@@ -237,7 +237,7 @@ The database contains domains for:
 
 ---
 
-## 🎯 Development Philosophy
+## Development Philosophy
 
 Melodive is being developed with an emphasis on understanding the engineering behind the application rather than simply making the features work.
 
@@ -256,7 +256,7 @@ Important principles include:
 
 ---
 
-## 📌 Current Phase
+## Current Phase
 
 **Phase: Backend Foundation → Library Ingestion**
 
@@ -282,6 +282,6 @@ Artwork / Waveform / Audio Analysis
 
 ---
 
-## 📜 License
+## License
 
 This project is currently intended for personal/self-hosted use.
