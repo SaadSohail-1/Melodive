@@ -198,17 +198,17 @@ The database contains domains for:
 
 ### Backend
 
-* [ ] Background job system
-* [ ] Worker process
-* [ ] Library scanner
-* [ ] Metadata extraction
-* [ ] Artwork processing
-* [ ] Audio analysis
-* [ ] Waveform generation
-* [ ] Music library API
-* [ ] Audio streaming
-* [ ] Range requests
-* [ ] Search API
+* [x] Background job system
+* [x] Worker process
+* [x] Library scanner
+* [x] Metadata extraction
+* [x] Artwork processing
+* [x] Audio analysis
+* [x] Waveform generation
+* [x] Music library API
+* [x] Audio streaming
+* [x] Range requests
+* [x] Search API
 * [ ] Playlist API
 * [ ] Listening statistics API
 
