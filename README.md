@@ -1,39 +1,39 @@
 # Melodive
 
-**Melodive** is a self-hosted music streaming application built as an engineering-focused full-stack project.
+Melodive is a self-hosted music streaming app that I'm building as a full-stack project.
 
-The goal is to build a personal music platform with a modern streaming experience while exploring real-world backend architecture, media processing, databases, background jobs, authentication, testing, and system design.
+The main idea is simple: keep my music locally, have a proper web interface for browsing and playing it, and build the backend around it instead of relying on an existing music server.
+Basically im building my own server instead of using something like navidrome, plex, jellyfin etc.
 
----
+I'm also using the project to learn and work with things that are easy to avoid in smaller projects, like background workers, media processing, database design, authentication, streaming, and system architecture.
 
-## Planned Features
+## What I want to build
 
 * Local music library
-* Full-text music search
+* Artists, albums, and tracks
+* Search
 * Audio streaming
 * Play / pause / seek
-* Artists, albums, and tracks
-* Album artwork
 * Playlists
 * Favorites
 * Recently played
 * Shuffle and repeat
-* Listening statistics
-* Wrapped-style yearly statistics
-* Audio waveforms
+* Listening history and statistics
+* Yearly "Wrapped"-style statistics
+* Album artwork
 * Audio analysis
+* Waveform generation
 * User authentication
-* Responsive interface
 * Keyboard shortcuts
+* Responsive UI
 * Remote access
-* Background processing
 * Automatic library scanning
 
----
+Some of these are planned for later, so the project is being built incrementally.
 
 ## Architecture
 
-Melodive uses a modular monorepo architecture:
+The project is a TypeScript monorepo:
 
 ```text
 Melodive/
@@ -41,7 +41,7 @@ Melodive/
 ├── apps/
 │   ├── server/       # Fastify API
 │   ├── web/          # React frontend
-│   └── worker/       # Background processing
+│   └── worker/       # Background jobs
 │
 ├── packages/
 │   └── shared/       # Shared TypeScript code
@@ -55,102 +55,80 @@ Melodive/
     └── docker/
 ```
 
-### Backend
+The main backend flow is:
 
 ```text
 React
   │
   ▼
-Fastify API
+Fastify
   │
   ├── Controllers
-  │       │
-  │       ▼
-  │    Services
-  │       │
-  │       ▼
-  │    Drizzle
-  │       │
-  │       ▼
-  │   PostgreSQL
+  │      ↓
+  │   Services
+  │      ↓
+  │   Drizzle
+  │      ↓
+  │ PostgreSQL
   │
-  └── Job Queue
-          │
-          ▼
-        Worker
+  └── Jobs
+       ↓
+     Worker
 ```
 
----
+The API handles normal application requests such as authentication, browsing the library, playlists, playback state, etc.
 
-## Tech Stack
+Anything that can take a while, such as scanning the music folder or processing audio, is handled by the worker instead of blocking the API.
 
-| Technology  | Purpose                    |
-| ----------- | -------------------------- |
-| TypeScript  | Application language       |
-| React       | Frontend                   |
-| Fastify     | Backend API                |
-| PostgreSQL  | Database                   |
-| Drizzle ORM | Database access            |
-| Drizzle Kit | Migrations                 |
-| Node.js     | Runtime                    |
-| Argon2      | Password hashing           |
-| FFmpeg      | Audio processing           |
-| Docker      | Development infrastructure |
-| Tailscale   | Remote access              |
+## Tech stack
 
----
-
-## Documentation
-
-Detailed project documentation is maintained under [`docs/`](docs/).
-
-### Architecture
-
-* [Backend Foundation](docs/backend-foundation.md)
-* ERD — [`docs/ERD/`](docs/ERD/)
-* Sequence Diagrams — [`docs/sequence%20diagrams/`](docs/sequence%20diagrams/)
-
-The backend foundation document explains the current implementation, including:
-
-* Fastify architecture
-* Project structure
-* PostgreSQL setup
-* Drizzle ORM
-* Database migrations
-* Database design
-* Authentication
-* Sessions
-* Cookies
-* Fastify plugins
-* Service/controller separation
-* Planned background jobs
-* Library ingestion architecture
-
----
+| Technology  | Used for                            |
+| ----------- | ----------------------------------- |
+| TypeScript  | Application language                |
+| React       | Frontend                            |
+| Fastify     | Backend API                         |
+| PostgreSQL  | Database                            |
+| Drizzle ORM | Database access                     |
+| Drizzle Kit | Migrations                          |
+| Node.js     | Runtime                             |
+| Argon2      | Password hashing                    |
+| FFmpeg      | Audio processing                    |
+| Docker      | Development database/infrastructure |
+| Tailscale   | Remote access                       |
 
 ## Authentication
 
-Authentication uses:
+Authentication uses Argon2, server-side sessions, and HttpOnly cookies.
+
+Passwords are hashed before being stored.
+
+Session tokens are generated securely, and only their hashes are stored in the database.
 
 ```text
+Password
+   ↓
 Argon2
-   +
-Server-side sessions
-   +
-HttpOnly cookies
+   ↓
+Password hash
+   ↓
+PostgreSQL
 ```
 
-Passwords are never stored in plaintext.
+For sessions:
 
-Session tokens are generated cryptographically and only their hashes are stored in PostgreSQL.
-
----
+```text
+Session token
+     ↓
+Hash
+     ↓
+PostgreSQL
+```
 
 ## Database
 
-The primary database is PostgreSQL.
+PostgreSQL is the main database and Drizzle is used for the schema and database access.
 
-The schema is managed through Drizzle:
+The basic migration flow is:
 
 ```text
 schema.ts
@@ -162,10 +140,9 @@ SQL migration
 PostgreSQL
 ```
 
-The database contains domains for:
+The database currently covers things such as:
 
 * Users and sessions
-* Music library
 * Artists
 * Albums
 * Tracks
@@ -177,9 +154,9 @@ The database contains domains for:
 * Background jobs
 * Acquisition requests
 
----
+Actual music files are kept on the filesystem rather than inside PostgreSQL.
 
-## Development Status
+## Development status
 
 ### Foundation
 
@@ -214,7 +191,6 @@ The database contains domains for:
 
 ### Frontend
 
-* [ ] React application
 * [ ] Authentication UI
 * [ ] Music library
 * [ ] Player
@@ -224,9 +200,9 @@ The database contains domains for:
 * [ ] Album pages
 * [ ] Playlists
 * [ ] Favorites
-* [ ] Statistics/Wrapped
+* [ ] Statistics / Wrapped
 
-### Quality
+### Testing and tooling
 
 * [ ] API test collection
 * [ ] Backend unit tests
@@ -235,53 +211,57 @@ The database contains domains for:
 * [ ] Storybook
 * [ ] CI/CD
 
----
+## Library ingestion
 
-## Development Philosophy
-
-Melodive is being developed with an emphasis on understanding the engineering behind the application rather than simply making the features work.
-
-Important principles include:
-
-* Keep the architecture modular.
-* Separate HTTP handling from business logic.
-* Keep expensive processing asynchronous.
-* Use PostgreSQL constraints where appropriate.
-* Keep migrations version-controlled.
-* Keep actual media files outside the database.
-* Avoid unnecessary microservices.
-* Build the system incrementally.
-* Test important behavior.
-* Prefer explicit architecture over premature abstraction.
-
----
-
-## Current Phase
-
-**Phase: Backend Foundation → Library Ingestion**
-
-The authentication and database foundation is established.
-
-The next major milestone is the background job system and music library ingestion pipeline:
+The idea is that the API doesn't directly scan and process the entire music library. Instead, it creates a job and lets the worker handle it.
 
 ```text
 Scan Request
      ↓
 Create Job
      ↓
-Worker
+Worker picks up job
      ↓
-Scan Music Directory
+Scan music directory
      ↓
-Extract Metadata
+Extract metadata
      ↓
 Artists / Albums / Tracks
      ↓
-Artwork / Waveform / Audio Analysis
+Process artwork
+     ↓
+Audio analysis
+     ↓
+Generate waveform
 ```
 
----
+This keeps the API responsive while the more expensive work happens in the background.
+
+## Project structure and docs
+
+More detailed architecture documentation is in [`docs/`](docs/).
+
+* [Backend Foundation](docs/backend-foundation.md)
+* [ERD](docs/ERD/)
+* [Sequence Diagrams](docs/sequence%20diagrams/)
+
+The documentation covers things like the backend structure, database design, authentication, sessions, Fastify plugins, services/controllers, background jobs, and library ingestion.
+
+## Development approach
+
+I'm trying to build Melodive incrementally rather than designing everything up front.
+
+The main goals are:
+
+* Keep the architecture reasonably simple.
+* Separate HTTP handling from application logic.
+* Keep expensive work in background jobs.
+* Let PostgreSQL enforce data integrity where possible.
+* Keep migrations version-controlled.
+* Keep media files outside the database.
+* Avoid adding microservices unless they are actually needed.
+* Understand how each part works instead of just making it work.
 
 ## License
 
-This project is currently intended for personal/self-hosted use.
+Currently intended for personal/self-hosted use.
