@@ -5,10 +5,23 @@ interface MiniPlayerProps {
     track: Track | null;
 }
 
+function formatTime(seconds: number): string {
+  if(!Number.isFinite(seconds)) {
+    return "0:00"
+  }
+
+  const minutes = Math.floor(seconds/60);
+  const remainingSeconds = Math.floor(seconds%60);
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+}
+
 export function MiniPlayer({track}: MiniPlayerProps) {
 
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
 
     useEffect(() => {
         if(!track || !audioRef.current){
@@ -38,6 +51,27 @@ export function MiniPlayer({track}: MiniPlayerProps) {
         }
     }
 
+    function handleTimeUpdate() {
+      const audio = audioRef.current;
+      if(!audio) return;
+      setCurrentTime(audio.currentTime);
+    }
+
+    function handleLoadedMetadata() {
+      const audio = audioRef.current;
+      if(!audio) return;
+      setDuration(audio.duration);
+    }
+
+    function handleSeek(event: React.ChangeEvent<HTMLInputElement>) {
+      const audio = audioRef.current;
+      if(!audio) return;
+      const newTime = Number(event.target.value);
+
+      audio.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+
     if(!track) {
         return null;
     }
@@ -46,10 +80,13 @@ export function MiniPlayer({track}: MiniPlayerProps) {
     <div className="fixed bottom-0 left-0 right-0 border-t bg-white p-4 shadow-lg">
       <audio
         ref={audioRef}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => setIsPlaying(false)}
       />
 
       <div className="flex items-center gap-4">
+        <div className="mb-3 flex items-center gap-4">
         <button
           onClick={togglePlay}
           className="rounded-full border px-4 py-2"
@@ -64,6 +101,24 @@ export function MiniPlayer({track}: MiniPlayerProps) {
             {track.format}
           </p>
         </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="w-10 text-right text-sm text-gray-500">
+          {formatTime(currentTime)}
+        </span>
+        <input 
+          type="range"
+          min="0"
+          max={duration || 0}
+          step="0.1"
+          value={Math.min(currentTime, duration || 0)}
+          onChange={handleSeek}
+        />
+
+        <span className="w-10 text-sm text-gray-500">
+            {formatTime(duration)}
+        </span>
+      </div>
       </div>
     </div>
   );
