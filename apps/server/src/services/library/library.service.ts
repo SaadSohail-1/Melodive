@@ -190,7 +190,7 @@ export async function getTracks(page: number, limit: number){
             sampleRate: tracks.sampleRate,
             channels: tracks.channels,
             fileSizeBytes: tracks.fileSizeBytes,
-            waveFormPath: tracks.waveformPath
+            waveformPath: tracks.waveformPath
         })
         .from(tracks)
         .innerJoin(
@@ -226,7 +226,7 @@ export async function getTrack(id: string){
             sampleRate: tracks.sampleRate,
             channels: tracks.channels,
             fileSizeBytes: tracks.fileSizeBytes,
-            waveFormPath: tracks.waveformPath
+            waveformPath: tracks.waveformPath
         })
         .from(tracks)
         .where(eq(tracks.id, id))
