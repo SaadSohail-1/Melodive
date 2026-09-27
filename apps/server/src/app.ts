@@ -3,10 +3,10 @@ import databasePlugin from "./plugins/database.js";
 import healthRoute from "./routes/health.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import libraryRoutes from "./routes/library.routes.js";
+import userRoutes from "./routes/user.routes.js";
 import cookie from "@fastify/cookie";
 import sensible from "@fastify/sensible";
 import authPlugin from "./plugins/auth.js";
-import meRoute from "./routes/me.js";
 
 export async function buildApp() {
     const fastify = Fastify({
@@ -21,7 +21,7 @@ export async function buildApp() {
     await fastify.register(authRoutes, {
         prefix: "/api/auth",
     });
-    await fastify.register(meRoute, {
+    await fastify.register(userRoutes, {
         prefix: "/api/users"
     });
     await fastify.register(libraryRoutes, {
