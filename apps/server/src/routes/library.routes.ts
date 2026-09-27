@@ -50,7 +50,7 @@ const getArtistsOpts = {
                 type: "object",
                 required: ["artists", "pagination"],
                 properties: {
-                    artists: {
+                    data: {
                         type: "array",
                         items: {
                             type: "object",
@@ -106,7 +106,7 @@ const getAlbumsOpts = {
         querystring: {
             type: "object",
             properties: {
-                pages: {
+                page: {
                     type: "integer",
                     minimum: 1,
                     default: 1,
