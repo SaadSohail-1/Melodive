@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: "{{base_url}}/api/library/search?q=mazzy"
+  url: "{{base_url}}/api/library/search?q=Among"
   params:
     - name: q
-      value: mazzy
+      value: Among
       type: query
   auth: inherit
 
