@@ -55,3 +55,54 @@ export async function setPlaybackState(
         message: "Playback state saved"
     })
 }
+
+export type CreateListeningEventBody = {
+    trackId: string;
+    playedDurationSeconds: string;
+}
+
+export async function createListeningEvent(
+    request: FastifyRequest<{Body: CreateListeningEventBody}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;   
+    const userId = request.user;
+    const {trackId, playedDurationSeconds} = request.body;
+    await userService.createListeningEvent(userId, trackId, playedDurationSeconds);
+    return reply.code(201).send({
+        success: true,
+        message: "Listening event saved successfully"
+    });
+}
+
+export type GetListeningEventsQuery = {
+    page?: number;
+    limit?: number;
+}
+
+export async function getListeningEvents(
+    request: FastifyRequest<{
+        Querystring: {
+            page?: number;
+            limit?: number;
+        }
+    }>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+
+    const page = request.query.page ?? 1;
+    const limit = request.query.limit ?? 20;
+
+    const {result, total} = await userService.getListeningEvents(request.user, page, limit);
+    return reply.code(200).send({
+        success: true,
+        data: result,
+        pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total/limit),
+        }
+    })
+}
