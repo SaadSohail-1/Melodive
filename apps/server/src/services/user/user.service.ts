@@ -1,7 +1,7 @@
-import { db, listeningEvents, tracks, userPlaybackStates } from "@melodive/db";
-import { eq, count, desc } from "drizzle-orm";
+import { db, favorites, listeningEvents, tracks, userPlaybackStates } from "@melodive/db";
+import { eq, count, desc, and } from "drizzle-orm";
 
-export async function getPlaybackState(id: string) {
+export async function getPlaybackState(userId: string) {
     const [result] = await db
         .select({
             trackId: userPlaybackStates.activeTrackId,
@@ -9,7 +9,7 @@ export async function getPlaybackState(id: string) {
             isPlaying: userPlaybackStates.isPlaying,
         })
         .from(userPlaybackStates)
-        .where(eq(userPlaybackStates.userId, id))
+        .where(eq(userPlaybackStates.userId, userId))
         .limit(1);
 
     return result ?? null;
@@ -116,4 +116,67 @@ export async function getListeningEvents(
         result,
         total: totalEvents?.total ?? 0
     }
+}
+
+export async function setFavoriteTrack(userId: string, trackId: string){
+    await db
+        .insert(favorites)
+        .values({
+            userId,
+            trackId
+        })
+        .onConflictDoNothing()
+}
+
+export async function deleteFavoriteTrack(userId: string, trackId: string) {
+    await db
+        .delete(favorites)
+        .where(
+            and(
+                eq(favorites.trackId, trackId),
+                eq(favorites.userId, userId)
+            )
+        )
+}
+
+export async function setFavoriteAlbum(userId: string, albumId: string){
+    await db
+        .insert(favorites)
+        .values({
+            userId,
+            albumId
+        })
+        .onConflictDoNothing()
+}
+
+export async function deleteFavoriteAlbum(userId: string, albumId: string) {
+    await db
+        .delete(favorites)
+        .where(
+            and(
+                eq(favorites.albumId, albumId),
+                eq(favorites.userId, userId)
+            )
+        )
+}
+
+export async function setFavoriteArtist(userId: string, artistId: string){
+    await db
+        .insert(favorites)
+        .values({
+            userId,
+            artistId
+        })
+        .onConflictDoNothing()
+}
+
+export async function deleteFavoriteArtist(userId: string, artistId: string) {
+    await db
+        .delete(favorites)
+        .where(
+            and(
+                eq(favorites.artistId, artistId),
+                eq(favorites.userId, userId)
+            )
+        )
 }

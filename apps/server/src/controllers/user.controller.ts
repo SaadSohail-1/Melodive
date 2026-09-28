@@ -106,3 +106,85 @@ export async function getListeningEvents(
         }
     })
 }
+
+export type FavoriteParams = {
+    id: string;
+}
+
+export async function setFavoriteTrack(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) { 
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.setFavoriteTrack(request.user, id);
+    return reply.code(201).send({
+        success: true,
+        message: "Track favorited successfully"
+    })
+}
+
+export async function deleteFavoriteTrack(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.deleteFavoriteTrack(request.user, id);
+    return reply.code(204).send({
+        success: true,
+        message: "Track deleted from favorites"
+    })
+}
+
+export async function setFavoriteAlbum(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) { 
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.setFavoriteAlbum(request.user, id);
+    return reply.code(201).send({
+        success: true,
+        message: "Album favorited successfully"
+    })
+}
+
+export async function deleteFavoriteAlbum(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.deleteFavoriteAlbum(request.user, id);
+    return reply.code(204).send({
+        success: true,
+        message: "Track deleted from favorites"
+    })
+}
+
+export async function setFavoriteArtist(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) { 
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.setFavoriteArtist(request.user, id);
+    return reply.code(201).send({
+        success: true,
+        message: "Artist favorited successfully"
+    })
+}
+
+export async function deleteFavoriteArtist(
+    request: FastifyRequest<{Params: FavoriteParams}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const {id} = request.params;
+    await userService.deleteFavoriteArtist(request.user, id);
+    return reply.code(204).send({
+        success: true,
+        message: "Track deleted from favorites"
+    })
+}

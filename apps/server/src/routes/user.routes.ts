@@ -1,6 +1,6 @@
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import * as userController from "../controllers/user.controller.js"
-import type { setPlaybackStateBody, CreateListeningEventBody, GetListeningEventsQuery } from "../controllers/user.controller.js";
+import type { setPlaybackStateBody, CreateListeningEventBody, GetListeningEventsQuery, FavoriteParams } from "../controllers/user.controller.js";
 
 const setPlaybackStateOpts = (fastify: FastifyInstance) => ({
     schema: {
@@ -51,12 +51,30 @@ const getListeningEventsOpts = (fastify:FastifyInstance) => ({
     onRequest: [fastify.authenticate]
 })
 
+const setFavoriteOpts = (fastify: FastifyInstance) => ({
+    schema: {
+
+    },
+    onRequest: [fastify.authenticate]
+})
+
 const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/me", { onRequest: [fastify.authenticate]}, userController.getMe);
+    //playback states
     fastify.get("/playback",{onRequest: [fastify.authenticate]}, userController.getPlaybackState);
     fastify.put<{Body: setPlaybackStateBody}>("/playback", setPlaybackStateOpts(fastify), userController.setPlaybackState);
+    //listening events
     fastify.post<{Body: CreateListeningEventBody}>("/listening-event", createListeningEventOpts(fastify), userController.createListeningEvent);
     fastify.get<{Querystring: GetListeningEventsQuery}>("/listening-events", getListeningEventsOpts(fastify) , userController.getListeningEvents);
+    //favorites
+    fastify.post<{Params: FavoriteParams}>("/favorites/tracks/:id", setFavoriteOpts(fastify) ,userController.setFavoriteTrack);
+    fastify.delete<{Params: FavoriteParams}>("/favorites/tracks/:id", {onRequest: [fastify.authenticate]}, userController.deleteFavoriteTrack);
+    fastify.post<{Params: FavoriteParams}>("/favorites/albums/:id", setFavoriteOpts(fastify) ,userController.setFavoriteAlbum);
+    fastify.delete<{Params: FavoriteParams}>("/favorites/albums/:id", {onRequest: [fastify.authenticate]}, userController.deleteFavoriteAlbum);
+    fastify.post<{Params: FavoriteParams}>("/favorites/artists/:id", setFavoriteOpts(fastify) ,userController.setFavoriteArtist);
+    fastify.delete<{Params: FavoriteParams}>("/favorites/artists/:id", {onRequest: [fastify.authenticate]}, userController.deleteFavoriteArtist);
+    //retrieve favorites
+
 }
 
 export default userRoutes;
