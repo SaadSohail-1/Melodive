@@ -319,13 +319,13 @@ export const favorites = pgTable("favorites", {
         .notNull()
         .references(() => users.id, {onDelete: "cascade"}),
 
-    trackId: uuid("track_id")
+    trackId: uuid("track_id").unique()
         .references(() => tracks.id),
 
-    albumId: uuid("album_id")
+    albumId: uuid("album_id").unique()
         .references(() => albums.id),
 
-    artistId: uuid("artist_id")
+    artistId: uuid("artist_id").unique()
         .references(() => artists.id),
 
     createdAt: timestamp("created_at", {
