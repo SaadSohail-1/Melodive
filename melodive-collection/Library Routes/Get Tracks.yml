@@ -5,7 +5,11 @@ info:
 
 http:
   method: GET
-  url: "{{base_url}}/api/library/tracks"
+  url: "{{base_url}}/api/library/tracks?page=3"
+  params:
+    - name: page
+      value: "3"
+      type: query
   auth: inherit
 
 settings:

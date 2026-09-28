@@ -5,7 +5,10 @@ info:
 
 http:
   method: GET
-  url: "{{base_url}}/api/user/playback"
+  url: "{{base_url}}/api/users/playback"
+  body:
+    type: json
+    data: ""
   auth: inherit
 
 settings:
