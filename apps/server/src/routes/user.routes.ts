@@ -74,6 +74,9 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post<{Params: FavoriteParams}>("/favorites/artists/:id", setFavoriteOpts(fastify) ,userController.setFavoriteArtist);
     fastify.delete<{Params: FavoriteParams}>("/favorites/artists/:id", {onRequest: [fastify.authenticate]}, userController.deleteFavoriteArtist);
     //retrieve favorites
+    fastify.get("/favorites/tracks",{onRequest: [fastify.authenticate]}, userController.getFavoriteTracks);
+    fastify.get("/favorites/albums", {onRequest: [fastify.authenticate]}, userController.getFavoriteAlbums);
+    fastify.get("/favorites/artists", {onRequest: [fastify.authenticate]}, userController.getFavoriteArtists);
 
 }
 

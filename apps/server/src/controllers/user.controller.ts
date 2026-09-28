@@ -188,3 +188,39 @@ export async function deleteFavoriteArtist(
         message: "Track deleted from favorites"
     })
 }
+
+export async function getFavoriteTracks(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const result = await userService.getFavoriteTracks(request.user);
+    return reply.code(200).send({
+        success: true,
+        data: result
+    })   
+}
+
+export async function getFavoriteAlbums(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const result = await userService.getFavoriteAlbums(request.user);
+    return reply.code(200).send({
+        success: true,
+        data: result
+    })       
+}
+
+export async function getFavoriteArtists(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const result = await userService.getFavoriteArtists(request.user);
+    return reply.code(200).send({
+        success: true,
+        data: result
+    })       
+}

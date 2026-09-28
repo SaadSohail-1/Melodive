@@ -1,5 +1,5 @@
 import { db, favorites, listeningEvents, tracks, userPlaybackStates } from "@melodive/db";
-import { eq, count, desc, and } from "drizzle-orm";
+import { eq, count, desc, and, isNotNull } from "drizzle-orm";
 
 export async function getPlaybackState(userId: string) {
     const [result] = await db
@@ -179,4 +179,58 @@ export async function deleteFavoriteArtist(userId: string, artistId: string) {
                 eq(favorites.userId, userId)
             )
         )
+}
+
+export async function getFavoriteTracks(userId: string) {
+    return await db
+        .select({
+            id: favorites.id,
+            userId: favorites.userId,
+            trackId: favorites.trackId,
+            createAt: favorites.createdAt
+        })
+        .from(favorites)
+        .where(
+            and(
+                isNotNull(favorites.trackId),
+                eq(favorites.userId, userId)
+            )
+        )
+        .orderBy(desc(favorites.createdAt))
+}
+
+export async function getFavoriteAlbums(userId: string) {
+    return await db
+        .select({
+            id: favorites.id,
+            userId: favorites.userId,
+            album: favorites.albumId,
+            createAt: favorites.createdAt
+        })
+        .from(favorites)
+        .where(
+            and(
+                isNotNull(favorites.albumId),
+                eq(favorites.userId, userId)
+            )
+        )
+        .orderBy(desc(favorites.createdAt))
+}
+
+export async function getFavoriteArtists(userId: string) {
+    return await db
+        .select({
+            id: favorites.id,
+            userId: favorites.userId,
+            aristId: favorites.artistId,
+            createAt: favorites.createdAt
+        })
+        .from(favorites)
+        .where(
+            and(
+                isNotNull(favorites.artistId),
+                eq(favorites.userId, userId)
+            )
+        )
+        .orderBy(desc(favorites.createdAt))
 }
