@@ -1,0 +1,16 @@
+info:
+  name: Set favorite artist
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: "{{base_url}}/api/users/favorites/artists/a51f4753-a112-4164-90e4-2bf248eebaae"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
