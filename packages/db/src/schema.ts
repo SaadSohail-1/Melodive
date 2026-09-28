@@ -235,7 +235,7 @@ export const listeningEvents = pgTable("listening_events", {
     }).notNull(),
 
     completed: boolean("completed").notNull(),
-    //whats source
+    
     source: varchar("source", {length: 50}),
 
     playedAt: timestamp("played_at", {
