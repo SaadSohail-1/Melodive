@@ -1,7 +1,14 @@
+//USAGE: npm run test:audio-analysis -- <music-directory> (from worker dir)
+
 import { analyzeAudioLoudness } from "../library/audio-analysis.js";
 import { scanDirectory } from "../library/scanner.js";
 
-const filePath = "/home/saad/Music"
+const filePath = process.argv[2];
+if(!filePath) {
+    console.error("Usage: npm run test:audio-analysis -- <music-directory>");
+    process.exit(1);
+}
+
 let audioFiles: string[] = [];
 
 try {

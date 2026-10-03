@@ -1,7 +1,13 @@
+//USAGE: npm run test:metadata -- <music_directory> (from worker dir)
+
 import { extractMetadata } from "../library/metadata.js";
 import { scanDirectory } from "../library/scanner.js";
 
-const filePath = "/home/saad/Music"
+const filePath = process.argv[2];
+if(!filePath) {
+    console.error("Usage:npm run test:metadata -- <music_directory>");
+    process.exit(1);
+}
 let audioFiles: string[] = [];
 
 try {    
