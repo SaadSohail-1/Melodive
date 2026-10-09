@@ -280,3 +280,11 @@ export async function updatePlaylist(
         })
         .where(eq(playlists.id, playlistId))
 }
+
+export async function deletePlaylist (
+    playlistId: string
+) {
+    await db
+        .delete(playlists)
+        .where(eq(playlists.id, playlistId))
+}

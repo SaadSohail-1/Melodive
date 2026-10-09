@@ -5,9 +5,10 @@ import type {
     CreateListeningEventBody,
     GetListeningEventsQuery,
     FavoriteParams,
-    PlaylistBody,
+    CreatePlaylistBody,
     UpdatePlaylistBody,
-    UpdatePlaylistParams
+    UpdatePlaylistParams,
+    DeletePlaylistParams
 } from "../types/user.types.js"
 
 export async function getMe(
@@ -216,7 +217,7 @@ export async function getFavoriteArtists(
 }
 
 export async function createPlaylist(
-    request: FastifyRequest<{Body: PlaylistBody}>,
+    request: FastifyRequest<{Body: CreatePlaylistBody}>,
     reply: FastifyReply
 ) {
     if(!request.user) return null;
@@ -254,4 +255,16 @@ export async function updatePlaylist(
         success: true,
         message: "Playlist updated successfully"
     })
+}
+
+export async function deletePlaylist(
+    request: FastifyRequest<{Params: DeletePlaylistParams}>,
+    reply: FastifyReply
+) {
+    const id = request.params.id;
+    await userService.deletePlaylist(id);
+    return reply.code(204).send({
+        success: true,
+        message: "Playlist deleted"
+    });
 }

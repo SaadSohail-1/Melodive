@@ -13,7 +13,7 @@ export type GetListeningEventsQuery = {
 export type FavoriteParams = {
     id: string;
 }
-export type PlaylistBody = {
+export type CreatePlaylistBody = {
     name: string;
     description: string;
     isPublic: boolean;
@@ -27,4 +27,6 @@ export type UpdatePlaylistBody = {
 export type UpdatePlaylistParams = {
     id: string;
 }
-
+export type DeletePlaylistParams = {
+    id: string;
+}

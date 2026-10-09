@@ -5,9 +5,10 @@ import type {
     CreateListeningEventBody, 
     GetListeningEventsQuery, 
     FavoriteParams, 
-    PlaylistBody,
+    CreatePlaylistBody,
     UpdatePlaylistBody,
-    UpdatePlaylistParams
+    UpdatePlaylistParams,
+    DeletePlaylistParams
 } from "../types/user.types.js";
 
 const setPlaybackStateOpts = (fastify: FastifyInstance) => ({
@@ -89,10 +90,12 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/favorites/albums", {onRequest: [fastify.authenticate]}, userController.getFavoriteAlbums);
     fastify.get("/favorites/artists", {onRequest: [fastify.authenticate]}, userController.getFavoriteArtists);
     //playlists
-    fastify.post<{Body: PlaylistBody}>("/playlists", {onRequest: [fastify.authenticate]}, userController.createPlaylist);
+    fastify.post<{Body: CreatePlaylistBody}>("/playlists", {onRequest: [fastify.authenticate]}, userController.createPlaylist);
     fastify.get("/playlists", {onRequest: fastify.authenticate}, userController.getPlaylists);
     fastify.put<{Params: UpdatePlaylistParams, Body:UpdatePlaylistBody}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.updatePlaylist);
-
+    fastify.delete<{Params: DeletePlaylistParams}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.deletePlaylist);
+    //playlist tracks
+    
 }
 
 export default userRoutes;
