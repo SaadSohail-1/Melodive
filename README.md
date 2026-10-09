@@ -186,7 +186,7 @@ Actual music files are kept on the filesystem rather than inside PostgreSQL.
 * [x] Audio streaming
 * [x] Range requests
 * [x] Search API
-* [ ] Playlist API
+* [x] Playlist API
 * [ ] Listening statistics API
 
 ### Frontend
@@ -236,16 +236,6 @@ Generate waveform
 ```
 
 This keeps the API responsive while the more expensive work happens in the background.
-
-## Project structure and docs
-
-More detailed architecture documentation is in [`docs/`](docs/).
-
-* [Backend Foundation](docs/backend-foundation.md)
-* [ERD](docs/ERD/)
-* [Sequence Diagrams](docs/sequence%20diagrams/)
-
-The documentation covers things like the backend structure, database design, authentication, sessions, Fastify plugins, services/controllers, background jobs, and library ingestion.
 
 ## Development approach
 
