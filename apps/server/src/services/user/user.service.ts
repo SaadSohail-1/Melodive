@@ -1,4 +1,4 @@
-import { db, favorites, listeningEvents, tracks, userPlaybackStates } from "@melodive/db";
+import { db, favorites, listeningEvents, playlists, tracks, userPlaybackStates } from "@melodive/db";
 import { eq, count, desc, and, isNotNull } from "drizzle-orm";
 
 export async function getPlaybackState(userId: string) {
@@ -233,4 +233,34 @@ export async function getFavoriteArtists(userId: string) {
             )
         )
         .orderBy(desc(favorites.createdAt))
+}
+
+export async function createPlaylist(
+    userId: string,
+    name: string,
+    description: string | null,
+    coverImagePath: string | null,
+) {
+    await db
+        .insert(playlists)
+        .values({
+            userId,
+            name,
+            description,
+            coverImagePath,
+        })
+        .onConflictDoNothing()
+}
+
+export async function getPlaylists(
+    userId: string
+) {
+    return await db
+        .select({
+            name: playlists.name,
+            description: playlists.description,
+            isPublic: playlists.isPublic
+        })
+        .from(playlists)
+        .where(eq(playlists.userId, userId))
 }

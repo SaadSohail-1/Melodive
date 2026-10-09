@@ -224,3 +224,36 @@ export async function getFavoriteArtists(
         data: result
     })       
 }
+
+export type PlaylistBody = {
+    name: string;
+    description: string;
+    isPublic: boolean;
+    coverImagePath: string;
+}
+
+export async function createPlaylist(
+    request: FastifyRequest<{Body: PlaylistBody}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const {name, description, coverImagePath} = request.body;
+    const result = await userService.createPlaylist(request.user, name, description, coverImagePath);
+    return reply.code(200).send({
+        success: true,
+        message: "Playlist created successfully"
+    })
+}
+
+export async function getPlaylists(
+    request: FastifyRequest,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const playlists = await userService.getPlaylists(request.user);
+    return reply.code(200).send({
+        success: true,
+        data: playlists
+    })
+}
+
