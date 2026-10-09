@@ -1,6 +1,14 @@
 import type { FastifyInstance, FastifyPluginAsync } from "fastify";
 import * as userController from "../controllers/user.controller.js"
-import type { setPlaybackStateBody, CreateListeningEventBody, GetListeningEventsQuery, FavoriteParams, PlaylistBody } from "../controllers/user.controller.js";
+import type { 
+    SetPlaybackStateBody, 
+    CreateListeningEventBody, 
+    GetListeningEventsQuery, 
+    FavoriteParams, 
+    PlaylistBody,
+    UpdatePlaylistBody,
+    UpdatePlaylistParams
+} from "../types/user.types.js";
 
 const setPlaybackStateOpts = (fastify: FastifyInstance) => ({
     schema: {
@@ -59,11 +67,13 @@ const setFavoriteOpts = (fastify: FastifyInstance) => ({
 })
 
 
+
+
 const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/me", { onRequest: [fastify.authenticate]}, userController.getMe);
     //playback states
     fastify.get("/playback",{onRequest: [fastify.authenticate]}, userController.getPlaybackState);
-    fastify.put<{Body: setPlaybackStateBody}>("/playback", setPlaybackStateOpts(fastify), userController.setPlaybackState);
+    fastify.put<{Body: SetPlaybackStateBody}>("/playback", setPlaybackStateOpts(fastify), userController.setPlaybackState);
     //listening events
     fastify.post<{Body: CreateListeningEventBody}>("/listening-event", createListeningEventOpts(fastify), userController.createListeningEvent);
     fastify.get<{Querystring: GetListeningEventsQuery}>("/listening-events", getListeningEventsOpts(fastify) , userController.getListeningEvents);
@@ -80,7 +90,8 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/favorites/artists", {onRequest: [fastify.authenticate]}, userController.getFavoriteArtists);
     //playlists
     fastify.post<{Body: PlaylistBody}>("/playlists", {onRequest: [fastify.authenticate]}, userController.createPlaylist);
-    fastify.get<{Params: {id: string}}>("/playlists", {onRequest: fastify.authenticate}, userController.getPlaylists);
+    fastify.get("/playlists", {onRequest: fastify.authenticate}, userController.getPlaylists);
+    fastify.put<{Params: UpdatePlaylistParams, Body:UpdatePlaylistBody}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.updatePlaylist);
 
 }
 

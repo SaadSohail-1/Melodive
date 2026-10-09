@@ -1,5 +1,14 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import * as userService from "../services/user/user.service.js";
+import type {
+    SetPlaybackStateBody,
+    CreateListeningEventBody,
+    GetListeningEventsQuery,
+    FavoriteParams,
+    PlaylistBody,
+    UpdatePlaylistBody,
+    UpdatePlaylistParams
+} from "../types/user.types.js"
 
 export async function getMe(
     request: FastifyRequest,
@@ -32,13 +41,8 @@ export async function getPlaybackState(
     });
 }
 
-export type setPlaybackStateBody = {
-    trackId: string;
-    positionSeconds: string;
-}
-
 export async function setPlaybackState(
-    request: FastifyRequest<{Body: setPlaybackStateBody}>,
+    request: FastifyRequest<{Body: SetPlaybackStateBody}>,
     reply: FastifyReply
 ) {
     if(!request.user) return null;
@@ -56,11 +60,6 @@ export async function setPlaybackState(
     })
 }
 
-export type CreateListeningEventBody = {
-    trackId: string;
-    playedDurationSeconds: string;
-}
-
 export async function createListeningEvent(
     request: FastifyRequest<{Body: CreateListeningEventBody}>,
     reply: FastifyReply
@@ -73,11 +72,6 @@ export async function createListeningEvent(
         success: true,
         message: "Listening event saved successfully"
     });
-}
-
-export type GetListeningEventsQuery = {
-    page?: number;
-    limit?: number;
 }
 
 export async function getListeningEvents(
@@ -105,10 +99,6 @@ export async function getListeningEvents(
             totalPages: Math.ceil(total/limit),
         }
     })
-}
-
-export type FavoriteParams = {
-    id: string;
 }
 
 export async function setFavoriteTrack(
@@ -225,20 +215,13 @@ export async function getFavoriteArtists(
     })       
 }
 
-export type PlaylistBody = {
-    name: string;
-    description: string;
-    isPublic: boolean;
-    coverImagePath: string;
-}
-
 export async function createPlaylist(
     request: FastifyRequest<{Body: PlaylistBody}>,
     reply: FastifyReply
 ) {
     if(!request.user) return null;
     const {name, description, coverImagePath} = request.body;
-    const result = await userService.createPlaylist(request.user, name, description, coverImagePath);
+    await userService.createPlaylist(request.user, name, description, coverImagePath);
     return reply.code(200).send({
         success: true,
         message: "Playlist created successfully"
@@ -257,3 +240,18 @@ export async function getPlaylists(
     })
 }
 
+export async function updatePlaylist(
+    request: FastifyRequest<{
+        Body: UpdatePlaylistBody,
+        Params: UpdatePlaylistParams 
+    }>,
+    reply: FastifyReply
+) {
+    const id = request.params.id;
+    const {name, description, isPublic} = request.body;
+    await userService.updatePlaylist(id, name, description, isPublic);
+    return reply.code(200).send({
+        success: true,
+        message: "Playlist updated successfully"
+    })
+}

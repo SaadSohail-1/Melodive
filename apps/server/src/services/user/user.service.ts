@@ -264,3 +264,19 @@ export async function getPlaylists(
         .from(playlists)
         .where(eq(playlists.userId, userId))
 }
+
+export async function updatePlaylist(
+    playlistId: string,
+    name?: string,
+    description?: string,
+    isPublic?: boolean,
+) {
+    await db
+        .update(playlists)
+        .set({
+            name,
+            description,
+            isPublic
+        })
+        .where(eq(playlists.id, playlistId))
+}
