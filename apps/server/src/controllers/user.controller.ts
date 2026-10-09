@@ -263,8 +263,5 @@ export async function deletePlaylist(
 ) {
     const id = request.params.id;
     await userService.deletePlaylist(id);
-    return reply.code(204).send({
-        success: true,
-        message: "Playlist deleted"
-    });
+    return reply.code(204).send();
 }
