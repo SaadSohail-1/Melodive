@@ -186,7 +186,7 @@ Actual music files are kept on the filesystem rather than inside PostgreSQL.
 * [x] Audio streaming
 * [x] Range requests
 * [x] Search API
-* [x] Playlist API
+* [ ] Playlist API
 * [ ] Listening statistics API
 
 ### Frontend
