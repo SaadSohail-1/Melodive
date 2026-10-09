@@ -13,7 +13,7 @@ http:
     type: json
     data: |-
       {
-        "path":"/home/saad/Music"
+        "path":"/path/to/music"
       }
   auth: inherit
 
