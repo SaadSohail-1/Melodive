@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: melodive
       POSTGRES_USER: melodive
-      POSTGRES_PASSWORD: melodive_dev
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:?Set DATABASE_PASSWORD in your .env file}
     ports:
       - "5432:5432"
     volumes:

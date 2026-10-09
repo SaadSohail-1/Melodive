@@ -15,7 +15,11 @@ dotenv.config({
     path: path.resolve(__dirname, "../../../.env")
 });
 
-const ARTWORK_DIR = process.env.ARTWORK_STORAGE_PATH || "/home/saad/Projects/Melodive/storage/artwork";
+const ARTWORK_DIR = process.env.ARTWORK_STORAGE_PATH;
+
+if (!ARTWORK_DIR) {
+    throw new Error("ARTWORK_STORAGE_PATH is required");
+}
 
 interface FetchArtworkPayload {
     albumId: string;

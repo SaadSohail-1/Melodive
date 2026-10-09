@@ -18,8 +18,6 @@ const client = new Client({
   password: process.env.DATABASE_PASSWORD,
 });
 
-console.log("PG CONFIG:", client);
-
 try {
   await client.connect();
   console.log("CONNECTED!");

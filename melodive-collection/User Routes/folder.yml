@@ -1,7 +1,0 @@
-info:
-  name: User Routes
-  type: folder
-  seq: 4
-
-request:
-  auth: inherit

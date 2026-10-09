@@ -21,7 +21,7 @@ Instead of extracting artwork synchronously and blocking the scanner, artwork pr
 
 ### Implementation Details
 *   **Metadata Detection:** Updated `extractMetadata()` to flag `hasArtwork: true` if FFprobe detects a `video` stream inside the audio file.
-*   **Storage Path:** Established a strict absolute path for the cache directory (`/home/saad/Projects/Melodive/storage/artwork`) to prevent relative path mapping errors caused by Node execution contexts.
+*   **Storage Path:** The artwork cache is stored in the project's configured storage directory(/storage/artowork).
 *   **The Hierarchy of Extraction:**
     1.  The worker checks the audio file's directory for local art (`cover.jpg`, `folder.jpg`, `front.jpg`, `cover.png`). If found, it copies it and exits early.
     2.  If no local file is found, it executes `ffmpeg -i <file> -an -vcodec copy <output.jpg>` to cleanly rip the embedded binary from the audio metadata without re-encoding it.
