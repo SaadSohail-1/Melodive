@@ -17,16 +17,15 @@ dotenv.config({
 
 const ARTWORK_DIR = process.env.ARTWORK_STORAGE_PATH;
 
-if (!ARTWORK_DIR) {
-    throw new Error("ARTWORK_STORAGE_PATH is required");
-}
-
 interface FetchArtworkPayload {
     albumId: string;
     sourceFilePath: string;
 }
 
 export async function processFetchArtworkJob(payload: unknown) {
+    if (!ARTWORK_DIR) {
+    throw new Error("ARTWORK_STORAGE_PATH is required");
+    }
     const {albumId, sourceFilePath} = payload as FetchArtworkPayload;
     console.log(`[FETCH_ARTWORK]: Extracting art for album ${albumId}`);
 
