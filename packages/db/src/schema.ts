@@ -357,6 +357,8 @@ export const jobs = pgTable("jobs", {
 
     result: jsonb("result"),
 
+    progress: jsonb("progress"),
+
     errorMessage: text("error_message"),
 
     attempts: smallint("attempts").notNull().default(0),
