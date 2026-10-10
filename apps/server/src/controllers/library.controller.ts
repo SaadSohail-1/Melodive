@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { createJob } from "../services/jobs/job.service.js";
+import { createJob, getJob } from "../services/jobs/job.service.js";
 import * as libraryService from "../services/library/library.service.js"
 import { logger } from "../config/logger.js";
 import { createReadStream } from "node:fs";
@@ -43,6 +43,39 @@ export async function scanLibrary(
     return reply.code(202).send({
         job_id: job?.id,
         status: job?.status,
+    });
+}
+
+export async function getScanProgress(
+    request: FastifyRequest<{Params: {jobId: string}}>,
+    reply: FastifyReply
+) {
+    const jobId = Number(request.params.jobId);
+
+    if(!Number.isSafeInteger(jobId) || jobId <= 0) {
+        return reply.code(400).send({
+            success: false,
+            error: "Invalid job ID"
+        });
+    }
+
+    const job = await getJob(jobId);
+    if(!job || job.type !== "SCAN_LIBRARY") {
+        return reply.code(404).send({
+            success: false,
+            error: "Scan job not found",
+        })
+    }
+
+    return reply.code(200).send({
+        id: job.id,
+        type: job.type,
+        status: job.status,
+        progress: job.progress,
+        result: job.result,
+        errorMessage: job.errorMessage,
+        startedAt: job.startedAt,
+        completedAt: job.completedAt
     });
 }
 
