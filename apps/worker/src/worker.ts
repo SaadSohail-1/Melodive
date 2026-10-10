@@ -21,15 +21,19 @@ export async function startWorker() {
 
     try {
         switch (job.type) {
-            case "SCAN_LIBRARY":
+            case "SCAN_LIBRARY": {
+                const payload = job.payload as {
+                    path?: string;
+                    name?: string;
+                };
                 console.log(`Processing SCAN_LIBRARY job #${job.id}`);
-                const payload = job.payload as {path?: string; name?: string};
                 if(!payload || typeof payload.path !== "string") {
                     throw new Error("Job payload is missing the 'path' string.");
                 } 
-                const result = await processScanLibraryJob(payload.path);
+                const result = await processScanLibraryJob(payload.path, payload.name ?? "MusicLiib", job.id);
                 console.log(`Job #${job.id} Pipeline results:`, result);
                 break;
+            };
             case "FETCH_ARTWORK":
                 await processFetchArtworkJob(job.payload);
                 break;

@@ -8,8 +8,9 @@ import { calculateFileHash } from "../library/checksum.js";
 import { tracks, albums } from "@melodive/db";
 import { access, stat } from "node:fs/promises";
 import { logger } from "../config/logger.js";
+import { updateJobProgress } from "./job.worker.js";
 
-export async function processScanLibraryJob(targetPath: string, name="MusicLib") {
+export async function processScanLibraryJob(targetPath: string, name="MusicLib", jobId?: number) {
     console.log(`[SCAN_LIBRARY]: Starting scan for: ${targetPath}`);
     await logger.info("SCAN_LIBRARY_STARTED", {
         details: {
@@ -38,10 +39,47 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
     const librarySourceId = sourceRecord.id;
     console.log(`[SCAN_LIBRARY]: Using librarySourceId: ${librarySourceId}`);
 
+    if(jobId !== undefined) {
+        await updateJobProgress(jobId, {
+            stage: "SCANNING_DIRECTORY",
+            filesFound: null,
+            filesProcessed: 0,
+            filesImported: 0,
+            filesFailed: 0,
+            followUpJobsQueued: 0
+        });
+    }
+
     const audioFiles = await scanDirectory(targetPath);
     console.log(`[SCAN_LIBRARY]: Found ${audioFiles.length} files. Extracting and importing...`);
-
     let successCount = 0;
+
+    let filesProcessed = 0;
+    let filesFailed = 0;
+    let followUpJobsQueued = 0;
+    let filesSinceLastUpdate = 0;
+
+    const saveProgress = async(stage: string) => {
+        if(jobId === undefined) return;
+        await updateJobProgress(jobId, {
+            stage,
+            filesFound: audioFiles.length,
+            filesProcessed,
+            filesImported:  successCount,
+            filesFailed,
+            followUpJobsQueued, 
+        });
+    }
+
+    const queueFollowUpJob = async (
+        type: string,
+        payload: unknown
+    ) => {
+        await enqueueJob(type, payload);
+        followUpJobsQueued++;
+    }
+    await saveProgress("PROCESSING_FILES");
+
     const enqueuedAlbums = new Set<string>();  
     /*^if the scanner goes to album1/track1.flac, and it detects that its missing the album cover, and it moves to album1/track2.flac
     it will again say that the cover is missing, so we check the album cover in metadata only once (on the first track),
@@ -74,7 +112,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 console.log(`[SCAN_LIBRARY]: Unchanged, skipping ${filePath}`);
                 
                 if(cached.albumId && !cached.artworkPath && !enqueuedAlbums.has(cached.albumId)) {
-                    await enqueueJob("FETCH_ARTWORK", { 
+                    await queueFollowUpJob("FETCH_ARTWORK", { 
                     albumId: cached.albumId, 
                     sourceFilePath: filePath 
                     });
@@ -104,7 +142,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                         `[SCAN_LIBRARY]: Waveform missing for track ${cached.id}`
                     );
 
-                    await enqueueJob("GENERATE_WAVEFORM", {
+                    await queueFollowUpJob("GENERATE_WAVEFORM", {
                         trackId: cached.id,
                         sourceFilePath: filePath
                     });
@@ -122,7 +160,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 }
 
                 if(!cached.loudnessLufs || !cached.gainDb) {
-                    await enqueueJob("ANALYZE_AUDIO", {
+                    await queueFollowUpJob("ANALYZE_AUDIO", {
                         trackId: cached.id,
                         sourceFilePath: filePath
                     })
@@ -168,7 +206,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 });
                 successCount++;
 
-                await enqueueJob("GENERATE_WAVEFORM", {
+                await queueFollowUpJob("GENERATE_WAVEFORM", {
                     trackId: track.id,
                     sourceFilePath: filePath
                 });
@@ -180,7 +218,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                     }
                 })
 
-                await enqueueJob("ANALYZE_AUDIO", {
+                await queueFollowUpJob("ANALYZE_AUDIO", {
                     trackId: track.id,
                     sourceFilePath: filePath
                 })
@@ -193,7 +231,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 })
 
                 if(metadata.hasArtwork && !album.artworkPath && !enqueuedAlbums.has(album.id)) {
-                    await enqueueJob(
+                    await queueFollowUpJob(
                         "FETCH_ARTWORK", {
                             albumId: album.id,
                             sourceFilePath: filePath
@@ -209,6 +247,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 }
             }
         } catch (error) {
+            filesFailed++;
             console.log(`[SCAN_LIBRARY]: Failed to process ${filePath}:`, error);
             await logger.error("SCAN_LIBRARY_FAILED", {
                 details: {
@@ -216,10 +255,22 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib")
                 },
                 error
             })
+        } finally {
+            filesProcessed++;
+            filesSinceLastUpdate++;
+
+            if(
+                filesSinceLastUpdate >= 25 || 
+                filesProcessed === audioFiles.length
+            ) {
+                await saveProgress("PROCESSING_FILES");
+                filesSinceLastUpdate = 0;
+            }
         }
     }
     // orphan cleanup logic, removing the records of the files from db that no longer exist in drive.
     //the below logic will only delete entries from the tracks table and other tables are left with ghost references.
+    await saveProgress("CLEANING_UP");
     const diskFilesSet = new Set(audioFiles);
     const orphansToRemove: string[] = [];
 
