@@ -1,0 +1,2 @@
+ALTER TABLE "playlist_tracks" ADD CONSTRAINT "playlist_track_unique" UNIQUE("playlist_id","track_id");--> statement-breakpoint
+ALTER TABLE "playlist_tracks" ADD CONSTRAINT "playlist_position_unique" UNIQUE("playlist_id","position");

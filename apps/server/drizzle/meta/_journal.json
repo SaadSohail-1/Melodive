@@ -43,6 +43,13 @@
       "when": 1790623164986,
       "tag": "0005_yummy_leopardon",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791575798844,
+      "tag": "0006_lazy_mulholland_black",
+      "breakpoints": true
     }
   ]
 }
