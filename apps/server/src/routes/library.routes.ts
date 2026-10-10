@@ -10,7 +10,8 @@ import {
     getTracks,
     getTrack,
     searchLibrary,
-    streamTrack
+    streamTrack,
+    getScanProgress
 } from "../controllers/library.controller.js";
 
 const scanLibraryOpts = {
@@ -228,9 +229,23 @@ const searchLibraryOpts = {
     }
 }
 
+const getScanProgressOpts = {
+    schema: {
+        params: {
+            type: "object",
+            required: ["jobId"],
+            properties: {
+                jobId: {
+                    type: "string",
+                },
+            }
+        }
+    }
+}
 
 const libraryRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.post("/scan", scanLibraryOpts, scanLibrary);
+    fastify.get("/scan/:jobId", getScanProgressOpts, getScanProgress);
     //artists endpoints
     fastify.get("/artists", getArtistsOpts, getArtists);
     fastify.get("/artists/:id", getArtistOpts, getArtist);
