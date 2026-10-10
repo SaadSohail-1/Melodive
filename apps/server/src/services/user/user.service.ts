@@ -1,5 +1,5 @@
-import { db, favorites, listeningEvents, playlists, tracks, userPlaybackStates } from "@melodive/db";
-import { eq, count, desc, and, isNotNull } from "drizzle-orm";
+import { db, favorites, listeningEvents, playlists, playlistTracks, tracks, userPlaybackStates } from "@melodive/db";
+import { eq, count, desc, and, isNotNull, max } from "drizzle-orm";
 
 export async function getPlaybackState(userId: string) {
     const [result] = await db
@@ -265,6 +265,44 @@ export async function getPlaylists(
         .where(eq(playlists.userId, userId))
 }
 
+export async function getPlaylist(
+    playlistId: string
+) {
+    const [playlist] = await db
+        .select({
+            id: playlists.id,
+            name: playlists.name,
+            description: playlists.description,
+            isPublic: playlists.isPublic
+        })
+        .from(playlists)
+        .where(eq(playlists.id, playlistId))
+        .limit(1);
+
+    if(!playlist) {
+        return null;
+    }    
+
+    const pTracks = await db
+        .select({
+            trackId: playlistTracks.trackId,
+            title: tracks.title,
+            position: playlistTracks.position
+        })
+        .from(playlistTracks)
+        .leftJoin(
+            tracks,
+            eq(playlistTracks.trackId, tracks.id)
+        )
+        .where(eq(playlistTracks.playlistId, playlistId))
+        .orderBy(playlistTracks.position);
+    
+    return {
+        ...playlist,
+        pTracks
+    }
+}
+
 export async function updatePlaylist(
     playlistId: string,
     name?: string,
@@ -287,4 +325,85 @@ export async function deletePlaylist (
     await db
         .delete(playlists)
         .where(eq(playlists.id, playlistId))
+}
+
+export async function addPlaylistTrack(
+    playlistId: string,
+    trackId: string,
+) {
+    return db.transaction(async (tx) => {
+        //1. lock this row
+        const [playlist] = await tx
+            .select({
+                id: playlists.id
+            })
+            .from(playlists)
+            .where(eq(playlists.id, playlistId))
+            .for("update");
+
+        if(!playlist) {
+            return {
+                added: false as const,
+                reason: "playlist-not-found" as const,
+            };
+        }
+
+        //2. calculate next position while holding the lock
+        const [result] = await tx
+            .select({
+                maxPosition: max(playlistTracks.position),
+            })
+            .from(playlistTracks)
+            .where(eq(playlistTracks.playlistId, playlistId));
+
+        const position = (result?.maxPosition ?? -1 ) + 1;
+
+        const [inserted] = await tx 
+            .insert(playlistTracks)
+            .values({
+                playlistId,
+                trackId,
+                position
+            })
+            .onConflictDoNothing({
+                target: [
+                    playlistTracks.playlistId,
+                    playlistTracks.trackId
+                ],
+            })
+            .returning({
+                id: playlistTracks.id,
+            })
+
+        if(!inserted) {
+            return {
+                added: false as const,
+                reason: "already-exists" as const,
+            };
+        }
+
+        return {
+            added: true as const,
+            id: inserted.id,
+            position,
+        }
+    })
+}
+
+export async function deletePlaylistTrack(
+    playlistId: string,
+    trackId: string
+) {
+    const [deleted] = await db
+        .delete(playlistTracks)
+        .where(
+            and(
+                eq(playlistTracks.playlistId, playlistId),
+                eq(playlistTracks.trackId, trackId)
+        ))
+        .returning({
+            id: playlistTracks.id
+        })
+
+    return deleted;
 }

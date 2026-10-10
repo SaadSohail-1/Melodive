@@ -8,7 +8,11 @@ import type {
     CreatePlaylistBody,
     UpdatePlaylistBody,
     UpdatePlaylistParams,
-    DeletePlaylistParams
+    DeletePlaylistParams,
+    AddPlaylistTrackParams,
+    AddPlaylistTrackBody,
+    GetPlaylistParams,
+    DeletePlaylistTrackParams
 } from "../types/user.types.js"
 
 export async function getMe(
@@ -76,12 +80,7 @@ export async function createListeningEvent(
 }
 
 export async function getListeningEvents(
-    request: FastifyRequest<{
-        Querystring: {
-            page?: number;
-            limit?: number;
-        }
-    }>,
+    request: FastifyRequest<{Querystring: GetListeningEventsQuery}>,
     reply: FastifyReply
 ) {
     if(!request.user) return null;
@@ -241,6 +240,19 @@ export async function getPlaylists(
     })
 }
 
+export async function getPlaylist(
+    request: FastifyRequest<{Params: GetPlaylistParams}>,
+    reply: FastifyReply
+) {
+    if(!request.user) return null;
+    const {id} = request.params
+    const result = await userService.getPlaylist(id);
+    return reply.code(200).send({
+        success: true,
+        data: result
+    }) 
+}
+
 export async function updatePlaylist(
     request: FastifyRequest<{
         Body: UpdatePlaylistBody,
@@ -263,5 +275,50 @@ export async function deletePlaylist(
 ) {
     const id = request.params.id;
     await userService.deletePlaylist(id);
+    return reply.code(204).send();
+}
+
+export async function addPlaylistTrack(
+    request: FastifyRequest<{
+        Body: AddPlaylistTrackBody,
+        Params: AddPlaylistTrackParams
+    }>,
+    reply: FastifyReply
+) {
+    const playlistId = request.params.id;
+    const trackId = request.body.id;
+    const result = await userService.addPlaylistTrack(playlistId, trackId);
+    if(!result.added) {
+        if(result.reason === "playlist-not-found") {
+            return reply.code(404).send({
+                success: false,
+                error: "Playlist not found"
+            })
+        } 
+        if(result.reason === "already-exists") {
+            return reply.code(409).send({
+                success: false,
+                error: "Track already exists in playlist"
+            })
+        }
+    } 
+    return reply.code(200).send({
+        id: result.id,
+        position: result.position
+    })
+}
+
+export async function deletePlaylistTrack(
+    request: FastifyRequest<{Params: DeletePlaylistTrackParams}>,
+    reply: FastifyReply
+) {
+    const {playlistId, trackId} = request.params;
+    const deleted = await userService.deletePlaylistTrack(playlistId, trackId);
+    if(!deleted) {
+        return reply.code(404).send({
+            success: false,
+            error: "Track not found in playlist"
+        })
+    }
     return reply.code(204).send();
 }

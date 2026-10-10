@@ -24,9 +24,22 @@ export type UpdatePlaylistBody = {
     description?: string;
     isPublic?: boolean
 }
+export type GetPlaylistParams = {
+    id: string
+}
 export type UpdatePlaylistParams = {
     id: string;
 }
 export type DeletePlaylistParams = {
     id: string;
+}
+export type AddPlaylistTrackBody = {
+    id: string
+}
+export type AddPlaylistTrackParams = {
+    id: string
+}
+export type DeletePlaylistTrackParams = {
+    playlistId: string,
+    trackId: string
 }
