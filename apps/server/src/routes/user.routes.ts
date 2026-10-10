@@ -8,7 +8,11 @@ import type {
     CreatePlaylistBody,
     UpdatePlaylistBody,
     UpdatePlaylistParams,
-    DeletePlaylistParams
+    DeletePlaylistParams,
+    AddPlaylistTrackBody,
+    AddPlaylistTrackParams,
+    GetPlaylistParams,
+    DeletePlaylistTrackParams
 } from "../types/user.types.js";
 
 const setPlaybackStateOpts = (fastify: FastifyInstance) => ({
@@ -91,11 +95,13 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     fastify.get("/favorites/artists", {onRequest: [fastify.authenticate]}, userController.getFavoriteArtists);
     //playlists
     fastify.post<{Body: CreatePlaylistBody}>("/playlists", {onRequest: [fastify.authenticate]}, userController.createPlaylist);
-    fastify.get("/playlists", {onRequest: fastify.authenticate}, userController.getPlaylists);
+    fastify.get("/playlists", {onRequest: [fastify.authenticate]}, userController.getPlaylists);
+    fastify.get<{Params: GetPlaylistParams}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.getPlaylist);
     fastify.put<{Params: UpdatePlaylistParams, Body:UpdatePlaylistBody}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.updatePlaylist);
     fastify.delete<{Params: DeletePlaylistParams}>("/playlists/:id", {onRequest: [fastify.authenticate]}, userController.deletePlaylist);
     //playlist tracks
-    
+    fastify.post<{Body: AddPlaylistTrackBody, Params: AddPlaylistTrackParams}>("/playlists/:id/tracks", {onRequest: [fastify.authenticate]}, userController.addPlaylistTrack);
+    fastify.delete<{Params: DeletePlaylistTrackParams}>("/playlists/:playlistId/tracks/:trackId", {onRequest: [fastify.authenticate]}, userController.deletePlaylistTrack);
 }
 
 export default userRoutes;
