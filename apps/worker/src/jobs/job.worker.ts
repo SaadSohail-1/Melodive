@@ -53,7 +53,19 @@ export async function completeJob(
     .update(jobs)
     .set({
       status: "COMPLETED",
-      result: result || null, 
+      result: result ?? null,
+      progress: sql`
+        CASE
+          WHEN progress IS NULL THEN NULL
+          ELSE jsonb_set(
+            progress,
+            '{stage}',
+            '"COMPLETED"'::jsonb,
+            true
+          )
+        END
+      `,
+      errorMessage: null, 
       completedAt: new Date(),
       lockedBy: null,
       lockedAt: null,
@@ -66,6 +78,26 @@ export async function completeJob(
         jobId: jobId
       }
     })
+}
+
+export async function updateJobProgress(
+  jobId: number,
+  progress: {
+    stage: string;
+    filesFound: number | null;
+    filesProcessed: number;
+    filesImported: number;
+    filesFailed: number;
+    followUpJobsQueued: number;
+  }
+) {
+  await db
+    .update(jobs)
+    .set({
+      progress,
+      updatedAt: new Date(),
+    })
+    .where(eq(jobs.id, jobId))
 }
 
 export async function failJob(
