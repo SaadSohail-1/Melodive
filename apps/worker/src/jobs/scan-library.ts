@@ -260,7 +260,7 @@ export async function processScanLibraryJob(targetPath: string, name="MusicLib",
             filesSinceLastUpdate++;
 
             if(
-                filesSinceLastUpdate >= 25 || 
+                filesSinceLastUpdate >= 5 || 
                 filesProcessed === audioFiles.length
             ) {
                 await saveProgress("PROCESSING_FILES");
