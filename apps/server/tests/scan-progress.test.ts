@@ -38,6 +38,7 @@ if (!MUSIC_PATH) {
     );
     console.error(
         "npm run test:scan-progress <BASE_URL> <MUSIC_DIRECTORY> (from /Melodive/apps/server)"
+    )
     process.exit(1);
 }
 
