@@ -310,7 +310,18 @@ export const playlistTracks = pgTable("playlist_tracks", {
     addedAt: timestamp("added_at", {
         withTimezone: true,
     }).notNull().defaultNow()
-})
+},
+    (table) => [
+        unique("playlist_track_unique").on(
+            table.playlistId,
+            table.trackId
+        ),
+        unique("playlist_position_unique").on(
+            table.playlistId,
+            table.position
+        ),
+    ],
+)
 
 export const favorites = pgTable("favorites", {
     id: uuid("id").defaultRandom().primaryKey(),
